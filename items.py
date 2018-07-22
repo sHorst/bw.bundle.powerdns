@@ -622,7 +622,7 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
         }
     else:
         files['/etc/powerdns/pdns.d/{}'.format(backend_config_filename)] = {
-            'deleted': True,
+            'delete': True,
             'triggers': [
                 "svc_systemd:pdns:restart"
             ],
