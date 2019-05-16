@@ -15,4 +15,39 @@ ln -s ../bundles/powerdns/items/zone_file.py items/zone_file.py
 Demo Metadata
 -------------
 
-TBD
+```
+'powerdns': {
+    'config': {
+        'launch': 'bind',
+        'bind-config': '/etc/powerdns/named.conf',
+        'recursor': '85.214.20.141',
+    },
+    'backends': {
+        'bind': {
+            'zones': {
+                'example.lan': {
+                    'name_servers': ['ns.example.org'],
+                    'soa': {
+                        'hostmaster': 'example@example.org',
+                    },
+                    'zone_type': 'group',
+                    'group': 'dns.lan',
+                    'interfaces': {
+                        'eth0': {
+                            'cname': True,
+                        },
+                    },
+                    'records': {
+                        'fooclient': [
+                            {
+                                'type': 'A',
+                                'value': '10.15.4.92',
+                            },
+                        ],
+                    },
+                },
+            },
+        },
+    },
+},
+```
