@@ -552,7 +552,7 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
                             .get('ip_addresses', [None, ])[0]
 
                         # Replace Zone in hostname
-                        gnode_name = gnode.hostname.replace(zone.rstrip('.'), '').rstrip('.')
+                        gnode_name = gnode.hostname.split('.')[-2]
 
 
                         if ip:
