@@ -15,17 +15,7 @@ def add_to_list_or_create(ilist, key, value):
     ilist[key] += [value, ]
 
 
-pkg_apt = {
-    'pdns-server': {
-        'installed': True
-    },
-    'pdns-tools': {
-        'installed': True
-    },
-    'dnsutils': {
-        'installed': True
-    },
-}
+
 
 svc_systemd = {
     "pdns": {

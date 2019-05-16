@@ -3,6 +3,10 @@ PowerDNS Modul
 
 This module installs PowerDNS.
 
+Dependencies
+------------
+- [apt-Bundle](https://github.com/sHorst/bw.bundle.apt)
+
 Install
 -------
 
