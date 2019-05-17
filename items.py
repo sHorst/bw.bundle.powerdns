@@ -14,9 +14,6 @@ def add_to_list_or_create(ilist, key, value):
 
     ilist[key] += [value, ]
 
-
-
-
 svc_systemd = {
     "pdns": {
         'needs': [
@@ -421,6 +418,7 @@ actions = {
 directories = {}
 zonefiles = {}
 
+pkg_apt = {}
 for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).items():
     apt = config.get('apt', 'pdns-backend-{}'.format(backend))
     pkg_apt[apt] = {
@@ -542,7 +540,7 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
                             .get('ip_addresses', [None, ])[0]
 
                         # Replace Zone in hostname
-                        gnode_name = gnode.hostname.split('.')[-2]
+                        gnode_name = '.'.join(gnode.hostname.split('.')[:-2])
 
 
                         if ip:
