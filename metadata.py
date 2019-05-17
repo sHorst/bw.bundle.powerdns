@@ -1,4 +1,17 @@
 @metadata_processor
+def add_apt_packages(metadata):
+    if node.has_bundle("apt"):
+        metadata.setdefault('apt', {})
+        metadata['apt'].setdefault('packages', {})
+
+        metadata['apt']['packages']['pdns-server'] = {'installed': True}
+        metadata['apt']['packages']['pdns-tools'] = {'installed': True}
+        metadata['apt']['packages']['dnsutils'] = {'installed': True}
+
+    return metadata, DONE
+
+
+@metadata_processor
 def add_iptables_rules(metadata):
     if node.has_bundle('iptables'):
         metadata += repo.libs.iptables.accept().chain('INPUT').tcp().dest_port(53)
