@@ -551,7 +551,9 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
                             .get(interface, {})\
                             .get('ip_addresses', [None, ])[0]
 
-                        gnode_name = gnode.name.split('.')[-1]
+                        # Replace Zone in hostname
+                        gnode_name = gnode.hostname.split('.')[-2]
+
 
                         if ip:
                             add_to_list_or_create(
