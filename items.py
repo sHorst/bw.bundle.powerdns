@@ -1,4 +1,5 @@
 from bundlewrap.exceptions import BundleError
+import re
 
 
 def add_dot(url):
@@ -24,6 +25,8 @@ svc_systemd = {
         ],
     }
 }
+
+pkg_apt = {}
 
 default_config = {
     # 8bit-dns	Allow 8bit dns queries
@@ -541,9 +544,8 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
                             .get(interface, {})\
                             .get('ip_addresses', [None, ])[0]
 
-                        # Replace Zone in hostname
-                        gnode_name = gnode.hostname.split('.')[-2]
-
+                        # Remove Zone in hostname
+                        gnode_name = re.sub("[.]{zone}$".format(zone=zone.replace('.','[.]')), '', gnode.hostname)
 
                         if ip:
                             add_to_list_or_create(
