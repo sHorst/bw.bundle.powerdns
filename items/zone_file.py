@@ -150,11 +150,11 @@ class ZoneFile(Item):
         "pkg_zypper:",
     ]
     ITEM_ATTRIBUTES = {
-        'soa': {},
-        'records': {},
-        'default_ttl': {},
-        'zonefile_directory': {},
-        'dynamic': {},
+        'soa': None,
+        'records': None,
+        'default_ttl': None,
+        'zonefile_directory': None,
+        'dynamic': None,
     }
     ITEM_TYPE_NAME = "zonefile"
     REQUIRED_ATTRIBUTES = ['soa', 'records']
