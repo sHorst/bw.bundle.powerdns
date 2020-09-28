@@ -135,7 +135,7 @@ def get_soa_from_zone(zone, zone_name):
         # we have no soa, so create new file
         return None
 
-    return _soa_rec.items[0]
+    return list(_soa_rec)[0]
 
 
 class ZoneFile(Item):
