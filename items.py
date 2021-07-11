@@ -616,6 +616,7 @@ if recursor_config.get('enabled', False):
         'security-poll-suffix': '',
         'setgid': 'pdns',
         'setuid': 'pdns',
+        'forward-zones-file': '/etc/powerdns/forward-zones.conf',
     })
 
     pdns_recursor_configs.update(node.metadata.get('powerdns', {}).get('recursor', {}).get('config', {}))
@@ -630,6 +631,20 @@ if recursor_config.get('enabled', False):
         'triggers': [
             "svc_systemd:pdns-recursor.service:restart"
         ],
+    }
+
+    forward_zones = [f'{x}=127.0.0.1:5300' for x in sorted(node.metadata.get('powerdns', {})
+                     .get('backends', {}).get('bind', {}).get('zones', {}).keys())]
+
+    files['/etc/powerdns/forward-zones.conf'] = {
+        'content': '\n'.join(forward_zones) + '\n',
+        'mode': "0644",
+        'owner': 'pdns',
+        'group': 'pdns',
+        'triggers': [
+            "svc_systemd:pdns-recursor.service:restart"
+        ],
+
     }
 
 
