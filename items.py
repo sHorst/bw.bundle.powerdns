@@ -335,6 +335,251 @@ pdns_default_config = {
         'default_value': 100},
 }
 
+pdns_recursor_default_config = {
+    'allow-from': {'comment': 'allow-from	If set, only allow these comma separated netmasks to recurse',
+                   'default_value': '127.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 192.168.0.0/16, '
+                                    '172.16.0.0/12, ::1/128, fc00::/7, fe80::/10', },
+    'allow-from-file': {'comment': 'allow-from-file	If set, load allowed netmasks from this file',
+                        'default_value': '', },
+    'any-to-tcp': {'comment': 'any-to-tcp	Answer ANY queries with tc=1, shunting to TCP', 'default_value': False, },
+    'api-config-dir': {'comment': 'api-config-dir	Directory where REST API stores config and zones',
+                       'default_value': '', },
+    'api-key': {'comment': 'api-key	Static pre-shared authentication key for access to the REST API',
+                'default_value': '', },
+    'api-logfile': {'comment': 'api-logfile	Location of the server logfile (used by the REST API)',
+                    'default_value': '/var/log/pdns.log', },
+    'api-readonly': {'comment': 'api-readonly	Disallow data modification through the REST API when set',
+                     'default_value': False, },
+    'auth-zones': {
+        'comment': 'auth-zones	Zones for which we have authoritative data, comma separated domain=file pairs ',
+        'default_value': '', },
+    'carbon-interval': {'comment': 'carbon-interval	Number of seconds between carbon (graphite) updates',
+                        'default_value': 30, },
+    'carbon-ourname': {'comment': 'carbon-ourname	If set, overrides our reported hostname for carbon stats',
+                       'default_value': '', },
+    'carbon-server': {
+        'comment': 'carbon-server	If set, send metrics in carbon (graphite) format to this server IP address',
+        'default_value': '', },
+    'chroot': {'comment': 'chroot	switch to chroot jail', 'default_value': '', },
+    'client-tcp-timeout': {'comment': 'client-tcp-timeout	Timeout in seconds when talking to TCP clients',
+                           'default_value': 2, },
+    'config-dir': {'comment': 'config-dir	Location of configuration directory (recursor.conf)',
+                   'default_value': None, 'mandatory': True, },
+    'config-name': {'comment': 'config-name	Name of this virtual configuration - will rename the binary image',
+                    'default_value': '', },
+    'cpu-map': {'comment': 'cpu-map	Thread to CPU mapping, space separated thread-id=cpu1,cpu2..cpuN pairs',
+                'default_value': '', },
+    'daemon': {'comment': 'daemon	Operate as a daemon', 'default_value': False, },
+    'delegation-only': {'comment': 'delegation-only	Which domains we only accept delegations from',
+                        'default_value': '', },
+    'disable-packetcache': {'comment': 'disable-packetcache	Disable packetcache', 'default_value': False, },
+    'disable-syslog': {
+        'comment': 'disable-syslog	Disable logging to syslog, useful when running inside a supervisor that logs stdout',
+        'default_value': False, },
+    'dnssec': {'comment': 'dnssec	DNSSEC mode: off/process-no-validate (default)/process/log-fail/validate',
+               'default_value': 'process-no-validate', },
+    'dnssec-log-bogus': {'comment': 'dnssec-log-bogus	Log DNSSEC bogus validations', 'default_value': False, },
+    'dont-query': {'comment': 'dont-query	If set, do not query these netmasks for DNS data',
+                   'default_value': '127.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 169.254.0.0/16, 192.168.0.0/16, '
+                                    '172.16.0.0/12, ::1/128, fc00::/7, fe80::/10, 0.0.0.0/8, 192.0.0.0/24, '
+                                    '192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24, 240.0.0.0/4, ::/96, '
+                                    '::ffff:0:0/96, 100::/64, 2001:db8::/32', },
+    'ecs-ipv4-bits': {'comment': 'ecs-ipv4-bits	Number of bits of IPv4 address to pass for EDNS Client Subnet',
+                      'default_value': 24, },
+    'ecs-ipv6-bits': {'comment': 'ecs-ipv6-bits	Number of bits of IPv6 address to pass for EDNS Client Subnet',
+                      'default_value': 56, },
+    'ecs-scope-zero-address': {
+        'comment': 'ecs-scope-zero-address	Address to send to whitelisted authoritative servers for '
+                   'incoming queries with ECS prefix-length source of 0',
+        'default_value': '', },
+    'edns-outgoing-bufsize': {'comment': 'edns-outgoing-bufsize	Outgoing EDNS buffer size',
+                              'default_value': 1680, },
+    'edns-subnet-whitelist': {
+        'comment': 'edns-subnet-whitelist	List of netmasks and domains that we should enable EDNS subnet for',
+        'default_value': '', },
+    'entropy-source': {'comment': 'entropy-source	If set, read entropy from this file',
+                       'default_value': '/dev/urandom', },
+    'etc-hosts-file': {'comment': 'etc-hosts-file	Path to \'hosts\' file', 'default_value': '/etc/hosts', },
+    'export-etc-hosts': {'comment': 'export-etc-hosts	If we should serve up contents from /etc/hosts',
+                         'default_value': 'off', },
+    'export-etc-hosts-search-suffix': {
+        'comment': 'export-etc-hosts-search-suffix	Also serve up the contents of /etc/hosts with this suffix',
+        'default_value': '', },
+    'forward-zones': {'comment': 'forward-zones	Zones for which we forward queries, comma separated domain=ip pairs',
+                      'default_value': '', },
+    'forward-zones-file': {'comment': 'forward-zones-file	File with (+)domain=ip pairs for forwarding',
+                           'default_value': '', },
+    'forward-zones-recurse': {
+        'comment': 'forward-zones-recurse	Zones for which we forward queries with recursion bit, '
+                   'comma separated domain=ip pairs',
+        'default_value': '', },
+    'gettag-needs-edns-options': {
+        'comment': 'gettag-needs-edns-options	If EDNS Options should be extracted before calling the gettag() hook',
+        'default_value': False, },
+    'hint-file': {'comment': 'hint-file	If set, load root hints from this file', 'default_value': '', },
+    'include-dir': {'comment': 'include-dir	Include *.conf files from this directory', 'default_value': '', },
+    'latency-statistic-size': {
+        'comment': 'latency-statistic-size	Number of latency values to calculate the qa-latency average',
+        'default_value': 10000, },
+    'local-address': {
+        'comment': 'local-address	IP addresses to listen on, separated by spaces or commas. Also accepts ports.',
+        'default_value': None, 'mandatory': True, },
+    'local-port': {'comment': 'local-port	port to listen on', 'default_value': 53, },
+    'log-common-errors': {'comment': 'log-common-errors	If we should log rather common errors',
+                          'default_value': False, },
+    'log-rpz-changes': {'comment': 'log-rpz-changes	Log additions and removals to RPZ zones at Info level',
+                        'default_value': False, },
+    'log-timestamp': {
+        'comment': 'log-timestamp	Print timestamps in log lines, useful to disable when running with a '
+                   'tool that timestamps stdout already',
+        'default_value': True, },
+    'logging-facility': {'comment': 'logging-facility	Facility to log messages as. 0 corresponds to local0',
+                         'default_value': '', },
+    'loglevel': {'comment': 'loglevel	Amount of logging. Higher is more. Do not set below 3',
+                 'default_value': 6, },
+    'lowercase-outgoing': {'comment': 'lowercase-outgoing	Force outgoing questions to lowercase',
+                           'default_value': False, },
+    'lua-config-file': {'comment': 'lua-config-file	More powerful configuration options', 'default_value': None,
+                        'mandatory': True, },
+    'lua-dns-script': {
+        'comment': 'lua-dns-script	Filename containing an optional \'lua\' script that will be '
+                   'used to modify dns answers',
+        'default_value': '', },
+    'max-cache-entries': {'comment': 'max-cache-entries	If set, maximum number of entries in the main cache',
+                          'default_value': 1000000, },
+    'max-cache-ttl': {'comment': 'max-cache-ttl	maximum number of seconds to keep a cached entry in memory',
+                      'default_value': 86400, },
+    'max-mthreads': {'comment': 'max-mthreads	Maximum number of simultaneous Mtasker threads',
+                     'default_value': 2048, },
+    'max-negative-ttl': {
+        'comment': 'max-negative-ttl	maximum number of seconds to keep a negative cached entry in memory',
+        'default_value': 3600, },
+    'max-ns-address-qperq': {'comment': 'max-ns-address-qperq	Maximum outgoing NS address queries per query',
+                             'default_value': 10, },
+    'max-packetcache-entries': {
+        'comment': 'max-packetcache-entries	maximum number of entries to keep in the packetcache',
+        'default_value': 500000, },
+    'max-qperq': {'comment': 'max-qperq	Maximum outgoing queries per query', 'default_value': 50, },
+    'max-recursion-depth': {
+        'comment': 'max-recursion-depth	Maximum number of internal recursion calls per query, 0 for unlimited',
+        'default_value': 40, },
+    'max-tcp-clients': {'comment': 'max-tcp-clients	Maximum number of simultaneous TCP clients',
+                        'default_value': 128, },
+    'max-tcp-per-client': {
+        'comment': 'max-tcp-per-client	If set, maximum number of TCP sessions per client (IP address)',
+        'default_value': '0', },
+    'max-tcp-queries-per-connection': {
+        'comment': 'max-tcp-queries-per-connection	If set, maximum number of TCP queries in a TCP connection',
+        'default_value': '0', },
+    'max-total-msec': {
+        'comment': 'max-total-msec	Maximum total wall-clock time per query in milliseconds, 0 for unlimited',
+        'default_value': 7000, },
+    'max-udp-queries-per-round': {
+        'comment': 'max-udp-queries-per-round	Maximum number of UDP queries processed per recvmsg() round, '
+                   'before returning back to normal processing',
+        'default_value': 10000, },
+    'minimum-ttl-override': {'comment': 'minimum-ttl-override	Set under adverse conditions, a minimum TTL',
+                             'default_value': '0', },
+    'network-timeout': {'comment': 'network-timeout	Wait this number of milliseconds for network i/o',
+                        'default_value': 1500, },
+    'no-shuffle': {'comment': 'no-shuffle	Don\'t change', 'default_value': 'off', },
+    'non-local-bind': {
+        'comment': 'non-local-bind	Enable binding to non-local addresses by using FREEBIND / BINDANY socket options',
+        'default_value': False, },
+    'nsec3-max-iterations': {
+        'comment': 'nsec3-max-iterations	Maximum number of iterations allowed for an NSEC3 record',
+        'default_value': 2500, },
+    'packetcache-servfail-ttl': {
+        'comment': 'packetcache-servfail-ttl	maximum number of seconds to keep a cached servfail entry in packetcache',
+        'default_value': 60, },
+    'packetcache-ttl': {'comment': 'packetcache-ttl	maximum number of seconds to keep a cached entry in packetcache',
+                        'default_value': 3600, },
+    'pdns-distributes-queries': {
+        'comment': 'pdns-distributes-queries	If PowerDNS itself should distribute queries over threads',
+        'default_value': True, },
+    'processes': {'comment': 'processes	Launch this number of processes (EXPERIMENTAL, DO NOT CHANGE)',
+                  'default_value': 1, },
+    'query-local-address': {'comment': 'query-local-address	Source IP address for sending queries',
+                            'default_value': '0.0.0.0', },
+    'query-local-address6': {
+        'comment': 'query-local-address6	Source IPv6 address for sending queries. IF UNSET, IPv6 WILL '
+                   'NOT BE USED FOR OUTGOING QUERIES',
+        'default_value': '', },
+    'quiet': {'comment': 'quiet	Suppress logging of questions and answers', 'default_value': None, 'mandatory': True, },
+    'reuseport': {
+        'comment': 'reuseport	Enable SO_REUSEPORT allowing multiple recursors processes to listen to 1 address',
+        'default_value': False, },
+    'root-nx-trust': {
+        'comment': 'root-nx-trust	If set, believe that an NXDOMAIN from the root means the TLD does not exist',
+        'default_value': True, },
+    'security-poll-suffix': {
+        'comment': 'security-poll-suffix	Domain name from which to query security update notifications',
+        'default_value': 'secpoll.powerdns.com.', },
+    'serve-rfc1918': {'comment': 'serve-rfc1918	If we should be authoritative for RFC 1918 private IP space',
+                      'default_value': True, },
+    'server-down-max-fails': {
+        'comment': 'server-down-max-fails	Maximum number of consecutive timeouts (and unreachables) '
+                   'to mark a server as down ( 0 => disabled )',
+        'default_value': 64, },
+    'server-down-throttle-time': {
+        'comment': 'server-down-throttle-time	Number of seconds to throttle all queries to a server '
+                   'after being marked as down',
+        'default_value': 60, },
+    'server-id': {'comment': 'server-id	Returned when queried for \'id.server\' TXT or NSID, defaults to hostname',
+                  'default_value': '', },
+    'setgid': {'comment': 'setgid	If set, change group id to this gid for more security', 'default_value': None,
+               'mandatory': True, },
+    'setuid': {'comment': 'setuid	If set, change user id to this uid for more security', 'default_value': None,
+               'mandatory': True, },
+    'signature-inception-skew': {
+        'comment': 'signature-inception-skew	Allow the signture inception to be off by this number of seconds',
+        'default_value': '0', },
+    'single-socket': {'comment': 'single-socket	If set, only use a single socket for outgoing queries',
+                      'default_value': 'off', },
+    'snmp-agent': {'comment': 'snmp-agent	If set, register as an SNMP agent', 'default_value': False, },
+    'snmp-master-socket': {
+        'comment': 'snmp-master-socket	If set and snmp-agent is set, the socket to use to register to the SNMP master',
+        'default_value': '', },
+    'soa-minimum-ttl': {'comment': 'soa-minimum-ttl	Don\'t change', 'default_value': '0', },
+    'socket-dir': {'comment': 'socket-dir	Where the controlsocket will live, /var/run when unset and not chrooted',
+                   'default_value': '', },
+    'socket-group': {'comment': 'socket-group	Group of socket', 'default_value': '', },
+    'socket-mode': {'comment': 'socket-mode	Permissions for socket', 'default_value': '', },
+    'socket-owner': {'comment': 'socket-owner	Owner of socket', 'default_value': '', },
+    'spoof-nearmiss-max': {'comment': 'spoof-nearmiss-max	If non-zero, assume spoofing after this many near misses',
+                           'default_value': 20, },
+    'stack-size': {'comment': 'stack-size	stack size per mthread', 'default_value': 200000, },
+    'statistics-interval': {
+        'comment': 'statistics-interval	Number of seconds between printing of recursor statistics, 0 to disable',
+        'default_value': 1800, },
+    'stats-ringbuffer-entries': {
+        'comment': 'stats-ringbuffer-entries	maximum number of packets to store statistics for',
+        'default_value': 10000, },
+    'tcp-fast-open': {
+        'comment': 'tcp-fast-open	Enable TCP Fast Open support on the listening sockets, '
+                   'using the supplied numerical value as the queue size',
+        'default_value': '0', },
+    'threads': {'comment': 'threads	Launch this number of threads', 'default_value': 2, },
+    'trace': {'comment': 'trace	if we should output heaps of logging. set to \'fail\' to only log failing domains',
+              'default_value': 'off', },
+    'udp-truncation-threshold': {'comment': 'udp-truncation-threshold	Maximum UDP response size before we truncate',
+                                 'default_value': 1680, },
+    'use-incoming-edns-subnet': {
+        'comment': 'use-incoming-edns-subnet	Pass along received EDNS Client Subnet information',
+        'default_value': False, },
+    'version-string': {'comment': 'version-string	string reported on version.pdns or version.bind',
+                       'default_value': 'PowerDNS Recursor 4.1.11', },
+    'webserver': {'comment': 'webserver	Start a webserver (for REST API)', 'default_value': False, },
+    'webserver-address': {'comment': 'webserver-address	IP Address of webserver to listen on',
+                          'default_value': '127.0.0.1', },
+    'webserver-allow-from': {'comment': 'webserver-allow-from	Webserver access is only allowed from these subnets',
+                             'default_value': '127.0.0.1,::1', },
+    'webserver-password': {'comment': 'webserver-password	Password required for accessing the webserver',
+                           'default_value': '', },
+    'webserver-port': {'comment': 'webserver-port	Port of webserver to listen on', 'default_value': 8082, },
+    'write-pid': {'comment': 'write-pid	Write a PID file', 'default_value': True, },
+}
+
 # set pdns_config to pdns_default_config
 pdns_configs = {x: y.get('default_value', None) for (x, y) in pdns_default_config.items()}.copy()
 
@@ -350,24 +595,54 @@ pdns_configs.update({
 recursor_config = node.metadata.get('powerdns', {}).get('recursor', {})
 
 if recursor_config.get('enabled', False):
+    svc_systemd['pdns-recursor.service'] = {'needs': ['pkg_apt:pdns-recursor', ], }
+
     pdns_configs.update({
         'local-address': '127.0.0.1',
         'local-port': 5300,
     })
 
+    pdns_recursor_configs = {x: y.get('default_value', None) for (x, y) in pdns_recursor_default_config.items()}.copy()
 
-pdns_configs.update(node.metadata.get('powerdns', {}).get('config', {}))
+    pdns_recursor_configs.update({
+        'config-dir': '/etc/powerdns',
+        'hint-file': '/usr/share/dns/root.hints',
+        'include-dir': '/etc/powerdns/recursor.d',
+        # 'local-address': '127.0.0.1',
+        'local-address': '0.0.0.0',
+        # 'local-address': '::',
+        'lua-config-file': '/etc/powerdns/recursor.lua',
+        'quiet': True,
+        'security-poll-suffix': '',
+        'setgid': 'pdns',
+        'setuid': 'pdns',
+    })
 
-files = {
-    '/etc/powerdns/pdns.conf': {
-        'content': '\n'.join(generate_content(dns_config=pdns_configs, default_config=pdns_default_config)) + '\n',
+    pdns_recursor_configs.update(node.metadata.get('powerdns', {}).get('recursor', {}).get('config', {}))
+
+    files['/etc/powerdns/recursor.conf'] = {
+        'content': '\n'.join(generate_content(
+            dns_config=pdns_recursor_configs,
+            default_config=pdns_recursor_default_config)) + '\n',
         'mode': "0600",
         'owner': 'root',
         'group': 'root',
         'triggers': [
-            "svc_systemd:pdns:restart"
+            "svc_systemd:pdns-recursor.service:restart"
         ],
     }
+
+
+pdns_configs.update(node.metadata.get('powerdns', {}).get('config', {}))
+
+files['/etc/powerdns/pdns.conf'] = {
+    'content': '\n'.join(generate_content(dns_config=pdns_configs, default_config=pdns_default_config)) + '\n',
+    'mode': "0600",
+    'owner': 'root',
+    'group': 'root',
+    'triggers': [
+        "svc_systemd:pdns:restart"
+    ],
 }
 
 dnssec_db = node.metadata\
