@@ -97,15 +97,20 @@ pdns_default_config = {
     'api': {'comment': 'api	Enable/disable the REST API (including HTTP listener)', 'default_value': False},
     'api-key': {'comment': 'api-key	Static pre-shared authentication key for access to the REST API',
                 'default_value': ''},
-    'api-logfile': {'comment': 'api-logfile	Location of the server logfile (used by the REST API)',
-                    'default_value': '/var/log/pdns.log'},
-    'api-readonly': {'comment': 'api-readonly	Disallow data modification through the REST API when set',
-                     'default_value': False},
+    # 'api-logfile': {'comment': 'api-logfile	Location of the server logfile (used by the REST API)',
+    #                 'default_value': '/var/log/pdns.log'},
+    # 'api-readonly': {'comment': 'api-readonly	Disallow data modification through the REST API when set',
+    #                  'default_value': False},
+    'axfr-fetch-timeout': {'comment': 'axfr-fetch-timeout	Maximum time in seconds for inbound AXFR to start or '
+                                      'be idle after starting',
+                           'default_value': 10},
     'axfr-lower-serial': {'comment': 'axfr-lower-serial	Also AXFR a zone from a master with a lower serial',
                           'default_value': False},
     'cache-ttl': {'comment': 'cache-ttl	Seconds to store packets in the PacketCache', 'default_value': 20},
+    'carbon-instance': {'comment': 'carbon-instance	If set overwrites the the instance name default', 'default_value': 'auth'},
     'carbon-interval': {'comment': 'carbon-interval	Number of seconds between carbon (graphite) updates',
                         'default_value': 30},
+    'carbon-namespace': {'comment': 'carbon-namespace	If set overwrites the first part of the carbon string', 'default_value': 'pdns'},
     'carbon-ourname': {'comment': 'carbon-ourname	If set, overrides our reported hostname for carbon stats',
                        'default_value': ''},
     'carbon-server': {
@@ -116,22 +121,27 @@ pdns_default_config = {
                    'default_value': '/etc/powerdns'},
     'config-name': {'comment': 'config-name	Name of this virtual configuration - will rename the binary image',
                     'default_value': ''},
+    'consistent-backends': {'comment': 'consistent-backends	Assume individual domains are not divided over backends. Send only ANY lookup operations to the backend to reduce the number of lookups', 'default_value': False},
     'control-console': {'comment': 'control-console	Debugging switch - don\'t use', 'default_value': False},
     'daemon': {'comment': 'daemon	Operate as a daemon', 'default_value': False},
+    'default-api-rectify': {'comment': 'default-api-rectify	Default API-RECTIFY value for zones', 'default_value': True},
     'default-ksk-algorithm': {'comment': 'default-ksk-algorithm	Default KSK algorithm', 'default_value': 'ecdsa256'},
     'default-ksk-size': {'comment': 'default-ksk-size	Default KSK size (0 means default)', 'default_value': 0},
+    'default-publish-cdnskey': {'comment': 'default-publish-cdnskey	Default value for PUBLISH-CDNSKEY', 'default_value': ''},
+    'default-publish-cds': {'comment': 'default-publish-cds	Default value for PUBLISH-CDS', 'default_value': ''},
+    'default-soa-content': {'comment': 'default-soa-content	Default SOA content', 'default_value': 'a.misconfigured.dns.server.invalid hostmaster.@ 0 10800 3600 604800 3600'},
     'default-soa-edit': {'comment': 'default-soa-edit	Default SOA-EDIT value', 'default_value': ''},
     'default-soa-edit-signed': {'comment': 'default-soa-edit-signed	Default SOA-EDIT value for signed zones',
                                 'default_value': ''},
-    'default-soa-mail': {
-        'comment': 'default-soa-mail	mail address to insert in the SOA record if none set in the backend',
-        'default_value': ''},
-    'default-soa-name': {'comment': 'default-soa-name	name to insert in the SOA record if none set in the backend',
-                         'default_value': 'a.misconfigured.powerdns.server'},
+    # 'default-soa-mail': {
+    #     'comment': 'default-soa-mail	mail address to insert in the SOA record if none set in the backend',
+    #     'default_value': ''},
+    # 'default-soa-name': {'comment': 'default-soa-name	name to insert in the SOA record if none set in the backend',
+    #                      'default_value': 'a.misconfigured.powerdns.server'},
     'default-ttl': {'comment': 'default-ttl	Seconds a result is valid if not set otherwise', 'default_value': 3600},
     'default-zsk-algorithm': {'comment': 'default-zsk-algorithm	Default ZSK algorithm', 'default_value': ''},
     'default-zsk-size': {'comment': 'default-zsk-size	Default ZSK size (0 means default)', 'default_value': 0},
-    'direct-dnskey': {'comment': 'direct-dnskey	Fetch DNSKEY RRs from backend during DNSKEY synthesis',
+    'direct-dnskey': {'comment': 'direct-dnskey	Fetch DNSKEY, CDS and CDNSKEY RRs from backend during DNSKEY or CDS/CDNSKEY synthesis',
                       'default_value': False},
     'disable-axfr': {'comment': 'disable-axfr	Disable zonetransfers but do allow TCP queries',
                      'default_value': False},
@@ -142,7 +152,7 @@ pdns_default_config = {
     'disable-syslog': {
         'comment': 'disable-syslog	Disable logging to syslog, useful when running inside a supervisor that logs stdout',
         'default_value': False},
-    'disable-tcp': {'comment': 'disable-tcp	Do not listen to TCP queries', 'default_value': False},
+    # 'disable-tcp': {'comment': 'disable-tcp	Do not listen to TCP queries', 'default_value': False},
     'distributor-threads': {
         'comment': 'distributor-threads	Default number of Distributor (backend) threads to start',
         'default_value': 3},
@@ -151,13 +161,14 @@ pdns_default_config = {
                              'default_value': 30},
     'dnsupdate': {'comment': 'dnsupdate	Enable/Disable DNS update (RFC2136) support. Default is no.',
                   'default_value': False},
-    'do-ipv6-additional-processing': {'comment': 'do-ipv6-additional-processing	Do AAAA additional processing',
-                                      'default_value': True},
+    # 'do-ipv6-additional-processing': {'comment': 'do-ipv6-additional-processing	Do AAAA additional processing',
+    #                                   'default_value': True},
     'domain-metadata-cache-ttl': {
         'comment': 'domain-metadata-cache-ttl	Seconds to cache domain metadata from the database',
         'default_value': 60},
     'edns-subnet-processing': {'comment': 'edns-subnet-processing	If we should act on EDNS Subnet options',
                                'default_value': False},
+    'enable-lua-records': {'comment': 'enable-lua-records	Process LUA records for all zones (metadata overrides this)', 'default_value': False},
     'entropy-source': {'comment': 'entropy-source	If set, read entropy from this file',
                        'default_value': '/dev/urandom'},
     'expand-alias': {'comment': 'expand-alias	Expand ALIAS records', 'default_value': False},
@@ -177,16 +188,16 @@ pdns_default_config = {
     'launch': {'comment': 'launch	Which backends to launch and order to query them in', 'default_value': None},
     'load-modules': {'comment': 'load-modules	Load this module - supply absolute or relative path',
                      'default_value': ''},
-    'local-address': {'comment': 'local-address	Local IP addresses to which we bind', 'default_value': '0.0.0.0'},
+    'local-address': {'comment': 'local-address	Local IP addresses to which we bind', 'default_value': ['0.0.0.0', '::']},
     'local-address-nonexist-fail': {
         'comment': 'local-address-nonexist-fail	Fail to start if one or more of '
                    'the local-address\'s do not exist on this server',
         'default_value': True},
-    'local-ipv6': {'comment': 'local-ipv6	Local IP address to which we bind', 'default_value': '::'},
-    'local-ipv6-nonexist-fail': {
-        'comment': 'local-ipv6-nonexist-fail	Fail to start if one or more of '
-                   'the local-ipv6 addresses do not exist on this server',
-        'default_value': True},
+    'local-ipv6': {'comment': 'local-ipv6	DEPRECATED, will be removed, move your IPs to local-address', 'default_value': '::'},
+    # 'local-ipv6-nonexist-fail': {
+    #     'comment': 'local-ipv6-nonexist-fail	Fail to start if one or more of '
+    #                'the local-ipv6 addresses do not exist on this server',
+    #     'default_value': True},
     'local-port': {'comment': 'local-port	The port on which we listen', 'default_value': 53},
     'log-dns-details': {'comment': 'log-dns-details	If PDNS should log DNS non-erroneous details',
                         'default_value': False},
@@ -198,13 +209,17 @@ pdns_default_config = {
     'lua-axfr-script': {'comment': 'lua-axfr-script	Script to be used to edit incoming AXFRs', 'default_value': ''},
     'lua-dnsupdate-policy-script': {
         'comment': 'lua-dnsupdate-policy-script	Lua script with DNS update policy handler', 'default_value': ''},
+    'lua-health-checks-expire-delay': {'comment': 'lua-health-checks-expire-delay	Stops doing health checks after the record hasn\'t been used for that delay (in seconds)', 'default_value': 3600},
+    'lua-health-checks-interval': {'comment': 'lua-health-checks-interval	LUA records health checks monitoring interval in seconds', 'default_value': 5},
     'lua-prequery-script': {'comment': 'lua-prequery-script	Lua script with prequery handler (DO NOT USE)',
                             'default_value': ''},
+    'lua-records-exec-limit': {'comment': 'lua-records-exec-limit	LUA records scripts execution limit (instructions count). Values <= 0 mean no limit', 'default_value': 1000},
     'master': {'comment': 'master	Act as a master', 'default_value': False},
     'max-cache-entries': {'comment': 'max-cache-entries	Maximum number of entries in the query cache',
                           'default_value': 1000000},
     'max-ent-entries': {'comment': 'max-ent-entries	Maximum number of empty non-terminals in a zone',
                         'default_value': 100000},
+    'max-generate-steps': {'comment': 'max-generate-steps	Maximum number of $GENERATE steps when loading a zone from a file', 'default_value': 0},
     'max-nsec3-iterations': {'comment': 'max-nsec3-iterations	Limit the number of NSEC3 hash iterations',
                              'default_value': 500},
     'max-packet-cache-entries': {'comment': 'max-packet-cache-entries	Maximum number of entries in the packet cache',
@@ -234,8 +249,8 @@ pdns_default_config = {
         'default_value': False},
     'only-notify': {'comment': 'only-notify	Only send AXFR NOTIFY to these IP addresses or netmasks',
                     'default_value': ['0.0.0.0/0', '::/0']},
-    'out-of-zone-additional-processing': {
-        'comment': 'out-of-zone-additional-processing	Do out of zone additional processing', 'default_value': True},
+    # 'out-of-zone-additional-processing': {
+    #     'comment': 'out-of-zone-additional-processing	Do out of zone additional processing', 'default_value': True},
     'outgoing-axfr-expand-alias': {'comment': 'outgoing-axfr-expand-alias	Expand ALIAS records during outgoing AXFR',
                                    'default_value': False},
     'overload-queue-length': {'comment': 'overload-queue-length	Maximum queuelength moving to packetcache only',
@@ -245,10 +260,11 @@ pdns_default_config = {
         'default_value': True},
     'query-cache-ttl': {'comment': 'query-cache-ttl	Seconds to store query results in the QueryCache',
                         'default_value': 20},
-    'query-local-address': {'comment': 'query-local-address	Source IP address for sending queries',
-                            'default_value': '0.0.0.0'},
-    'query-local-address6': {'comment': 'query-local-address6	Source IPv6 address for sending queries',
-                             'default_value': '::'},
+    'query-local-address': {'comment': 'query-local-address	Source IP addresses for sending queries',
+                            'default_value': '0.0.0.0 ::'},
+    'query-local-address6': {'comment': 'query-local-address6	DEPRECATED: Use query-local-address. Source IPv6 '
+                                        'address for sending queries',
+                             'default_value': ''},
     'query-logging': {'comment': 'query-logging	Hint backends that queries should be logged',
                       'default_value': False},
     'queue-limit': {'comment': 'queue-limit	Maximum number of milliseconds to queue a query', 'default_value': 1500},
@@ -267,29 +283,35 @@ pdns_default_config = {
         'comment': 'reuseport	Enable higher performance on compliant kernels by using SO_REUSEPORT '
                    'allowing each receiver thread to open its own socket',
         'default_value': False},
+    'rng': {'comment': 'rng	Specify the random number generator to use. Valid values are auto,sodium,openssl,'
+                       'getrandom,arc4random,urandom.', 'default_value': 'auto'},
     'security-poll-suffix': {
         'comment': 'security-poll-suffix	Domain name from which to query security update notifications',
         'default_value': 'secpoll.powerdns.com.'},
+    'send-signed-notify': {'comment': 'send-signed-notify	Send TSIG secured NOTIFY if TSIG key is configured for '
+                                      'a domain',
+                           'default_value': True},
     'server-id': {
         'comment': 'server-id	Returned when queried for \'id.server\' TXT or NSID, defaults to hostname '
                    '- disabled or custom',
         'default_value': ''},
-    'setgid': {'comment': 'setgid	If set, change group id to this gid for more security', 'default_value': '',
-               'mandatory': True},
-    'setuid': {'comment': 'setuid	If set, change user id to this uid for more security', 'default_value': '',
-               'mandatory': True},
+    'setgid': {'comment': 'setgid	If set, change group id to this gid for more security', 'default_value': ''},
+    'setuid': {'comment': 'setuid	If set, change user id to this uid for more security', 'default_value': ''},
     'signing-threads': {'comment': 'signing-threads	Default number of signer threads to start', 'default_value': 3},
     'slave': {'comment': 'slave	Act as a slave', 'default_value': False},
     'slave-cycle-interval': {'comment': 'slave-cycle-interval	Schedule slave freshness checks once every .. seconds',
                              'default_value': 60},
     'slave-renotify': {'comment': 'slave-renotify	If we should send out notifications for slaved updates',
                        'default_value': False},
-    'soa-expire-default': {'comment': 'soa-expire-default	Default SOA expire', 'default_value': 604800},
-    'soa-minimum-ttl': {'comment': 'soa-minimum-ttl	Default SOA minimum ttl', 'default_value': 3600},
-    'soa-refresh-default': {'comment': 'soa-refresh-default	Default SOA refresh', 'default_value': 10800},
-    'soa-retry-default': {'comment': 'soa-retry-default	Default SOA retry', 'default_value': 3600},
-    'socket-dir': {'comment': 'socket-dir	Where the controlsocket will live, /var/run when unset and not chrooted',
+    # 'soa-expire-default': {'comment': 'soa-expire-default	Default SOA expire', 'default_value': 604800},
+    # 'soa-minimum-ttl': {'comment': 'soa-minimum-ttl	Default SOA minimum ttl', 'default_value': 3600},
+    # 'soa-refresh-default': {'comment': 'soa-refresh-default	Default SOA refresh', 'default_value': 10800},
+    # 'soa-retry-default': {'comment': 'soa-retry-default	Default SOA retry', 'default_value': 3600},
+    'socket-dir': {'comment': 'socket-dir	Where the controlsocket will live, /var/run/pdns when unset and not '
+                              'chrooted. Set to the RUNTIME_DIRECTORY environment variable when that variable has '
+                              'a value (e.g. under systemd).',
                    'default_value': ''},
+    'superslave': {'comment': 'superslave	Act as a superslave', 'default_value': False},
     'tcp-control-address': {
         'comment': 'tcp-control-address	If set, PowerDNS can be controlled over TCP on this address',
         'default_value': ''},
@@ -314,7 +336,10 @@ pdns_default_config = {
     'trusted-notification-proxy': {'comment': 'trusted-notification-proxy	IP address of incoming notification proxy',
                                    'default_value': ''},
     'udp-truncation-threshold': {'comment': 'udp-truncation-threshold	Maximum UDP response size before we truncate',
-                                 'default_value': 1680},
+                                 'default_value': 1232},
+    'upgrade-unknown-types': {'comment': 'upgrade-unknown-types	Transparently upgrade known TYPExxx records. '
+                                         'Recommended to keep off, except for PowerDNS upgrades until data sources '
+                                         'are cleaned up', 'default_value': False},
     'version-string': {'comment': 'version-string	PowerDNS version in packets - full, anonymous, powerdns or custom',
                        'default_value': 'full'},
     'webserver': {'comment': 'webserver	Start a webserver for monitoring (api=yes also enables the HTTP listener)',
@@ -324,6 +349,11 @@ pdns_default_config = {
     'webserver-allow-from': {
         'comment': 'webserver-allow-from	Webserver/API access is only allowed from these subnets',
         'default_value': ['127.0.0.1', '::1']},
+    'webserver-loglevel': {'comment': 'webserver-loglevel	Amount of logging in the webserver (none, normal, detailed)',
+                           'default_value': 'normal'},
+    'webserver-max-bodysize': {'comment': 'webserver-max-bodysize	Webserver/API maximum request/response '
+                                          'body size in megabytes',
+                               'default_value': 2},
     'webserver-password': {'comment': 'webserver-password	Password required for accessing the webserver',
                            'default_value': ''},
     'webserver-port': {'comment': 'webserver-port	Port of webserver/API to listen on', 'default_value': 8081},
@@ -334,6 +364,10 @@ pdns_default_config = {
         'comment': 'xfr-max-received-mbytes	Maximum number of megabytes received from an incoming XFR',
         'default_value': 100},
 }
+
+
+
+
 
 pdns_recursor_default_config = {
     'allow-from': {'comment': 'allow-from	If set, only allow these comma separated netmasks to recurse',
@@ -588,8 +622,8 @@ pdns_configs.update({
     'include-dir': '/etc/powerdns/pdns.d',
     'launch': '',
     'security-poll-suffix': '',
-    'setgid': 'pdns',
-    'setuid': 'pdns',
+    # 'setgid': 'pdns',
+    # 'setuid': 'pdns',
 })
 
 recursor_config = node.metadata.get('powerdns', {}).get('recursor', {})
@@ -652,9 +686,9 @@ pdns_configs.update(node.metadata.get('powerdns', {}).get('config', {}))
 
 files['/etc/powerdns/pdns.conf'] = {
     'content': '\n'.join(generate_content(dns_config=pdns_configs, default_config=pdns_default_config)) + '\n',
-    'mode': "0600",
-    'owner': 'root',
-    'group': 'root',
+    'mode': "0640",
+    'owner': 'pdns',
+    'group': 'pdns',
     'triggers': [
         "svc_systemd:pdns:restart"
     ],
@@ -717,14 +751,17 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
             'bind-dnssec-db': {'comment': 'bind-dnssec-db	'
                                           'Filename to store & access our DNSSEC metadatabase, empty for none',
                                'default_value': ''},
+            'bind-dnssec-db-journal-mode': {'comment': 'bind-dnssec-db-journal-mode	SQLite3 journal mode',
+                                            'default_value': 'WAL'},
             'bind-hybrid': {'comment': 'bind-hybrid	Store DNSSEC metadata in other backend', 'default_value': False},
             'bind-ignore-broken-records': {'comment': 'bind-ignore-broken-records	'
                                                       'Ignore records that are out-of-bound for the zone.',
                                            'default_value': False},
             'bind-supermaster-config': {'comment': 'bind-supermaster-config	Location of (part of) named.conf where '
-                                                   'pdns can write zone-statements to', 'default_value': ''},
+                                                   'pdns can write zone-statements to',
+                                        'default_value': ''},
             'bind-supermaster-destdir': {'comment': 'bind-supermaster-destdir	Destination directory for newly '
-                                                    'added slave zones', 'default_value': ''},
+                                                    'added slave zones', 'default_value': '/etc/powerdns'},
             'bind-supermasters': {'comment': 'bind-supermasters	List of IP-addresses of supermasters',
                                   'default_value': ''},
         }
@@ -888,8 +925,8 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
                 dns_config=backend_config,
                 default_config=backend_default_config)) + '\n',
             'mode': "0640",
-            'owner': 'root',
-            'group': 'root',
+            'owner': 'pdns',
+            'group': 'pdns',
             'triggers': [
                 "svc_systemd:pdns:restart"
             ],
