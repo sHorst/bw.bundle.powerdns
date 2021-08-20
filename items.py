@@ -1080,6 +1080,21 @@ actions = {
     },
 }
 
+if 'supermasters' in node.metadata.get('powerdns', {}):
+    supermasters = []
+    for supermaster_name, supermaster_ips in node.metadata['powerdns']['supermasters'].items():
+        supermasters += [f'{ip} {supermaster_name}' for ip in supermaster_ips]
+
+    supermaster_filename = node.metadata.get('powerdns', {}).get('backends', {}).\
+        get('bind', {}).get('config', {}).get('bind-supermasters', '/etc/powerdns/supermasters.conf')
+
+    files[supermaster_filename] = {
+        'content': '\n'.join(supermasters) + '\n',
+        'owner': 'pdns',
+        'group': 'pdns',
+        'mode': '0600',
+    }
+
 directories = {}
 zonefiles = {}
 zones_dnssec = {}
