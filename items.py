@@ -1100,12 +1100,14 @@ zonefiles = {}
 zones_dnssec = {}
 
 for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).items():
-    apt = config.get('apt', 'pdns-backend-{}'.format(backend))
-    pkg_apt[apt] = {
-       'installed': True,
-       'needs': ['pkg_apt:pdns-server'],
-       'needed_by': ['svc_systemd:pdns']
-    }
+    apt = None
+    if node.os == 'debian' and node.os_version[0] > 8:
+        apt = config.get('apt', 'pdns-backend-{}'.format(backend))
+        pkg_apt[apt] = {
+           'installed': True,
+           'needs': ['pkg_apt:pdns-server'],
+           'needed_by': ['svc_systemd:pdns']
+        }
 
     backend_config = {}
     backend_default_config = {}
@@ -1159,11 +1161,14 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
         zonefile_directory = config.get('zonefile_directory', '/var/lib/powerdns/zones')
 
         directories[zonefile_directory] = {
-            'owner': 'root',
+            'owner': 'pdns',
             'group': 'pdns',
-            'mode': "0750",
-            'needs': ['pkg_apt:{}'.format(apt)],
+            'mode': "0700",
+            'needs': [],
         }
+
+        if apt is not None:
+            directories[zonefile_directory][needs] += f'pkg_apt:{apt}'
 
         named_config = [
             '# Debian default: supermaster created zones are written here:',

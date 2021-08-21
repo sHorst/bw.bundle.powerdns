@@ -3,11 +3,12 @@ defaults = {}
 if node.has_bundle("apt"):
     defaults['apt'] = {
         'packages': {
-            'pdns-server': {'installed': True},
-            'pdns-tools': {'installed': True},
-            'dnsutils': {'installed': True},
+            'pdns-server': {'installed': True, },
+            'dnsutils': {'installed': True, },
         }
     }
+    if node.os == 'debian' and node.os_version[0] > 8:
+        defaults['apt']['packages']['pdns-tools'] = {'installed': True, },
 
 if node.has_bundle('iptables'):
     defaults += repo.libs.iptables.accept().chain('INPUT').tcp().dest_port(53)
