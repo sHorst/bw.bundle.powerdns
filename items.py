@@ -1168,7 +1168,7 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
         }
 
         if apt is not None:
-            directories[zonefile_directory][needs] += f'pkg_apt:{apt}'
+            directories[zonefile_directory]['needs'] += [f'pkg_apt:{apt}', ]
 
         named_config = [
             '# Debian default: supermaster created zones are written here:',

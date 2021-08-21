@@ -8,7 +8,7 @@ if node.has_bundle("apt"):
         }
     }
     if node.os == 'debian' and node.os_version[0] > 8:
-        defaults['apt']['packages']['pdns-tools'] = {'installed': True, },
+        defaults['apt']['packages']['pdns-tools'] = {'installed': True, }
 
 if node.has_bundle('iptables'):
     defaults += repo.libs.iptables.accept().chain('INPUT').tcp().dest_port(53)
