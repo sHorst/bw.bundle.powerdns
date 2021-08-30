@@ -29,6 +29,7 @@ from dns.rdtypes.ANY.CNAME import CNAME
 from dns.rdtypes.IN.SRV import SRV
 from dns.rdtypes.ANY.PTR import PTR
 from dns.rdtypes.ANY.SOA import SOA
+from dns.rdtypes.ANY.TXT import TXT
 
 from dns.zone import NoSOA, NoNS
 
@@ -62,6 +63,11 @@ allowed_records = {
         'class': dns.rdataclass.IN,
         'type': dns.rdatatype.PTR,
         'obj': lambda x: PTR(dns.rdataclass.IN, dns.rdatatype.PTR, to_name(x))
+    },
+    'TXT': {
+        'class': dns.rdataclass.IN,
+        'type': dns.rdatatype.TXT,
+        'obj': lambda x: TXT(dns.rdataclass.IN, dns.rdatatype.TXT, x)
     },
 }
 
