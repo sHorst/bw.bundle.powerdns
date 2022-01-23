@@ -1,5 +1,9 @@
 from bundlewrap.exceptions import BundleError
 import re
+from json import loads
+from os.path import join
+from bundlewrap.utils import get_file_contents
+from ipaddress import ip_network, ip_address, ip_interface
 
 pkg_apt = {}
 files = {}
@@ -1236,6 +1240,44 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
 
             if zone_type == 'dyndns':
                 zonefiles[zone]['dynamic'] = True
+            elif zone_type == 'netbox':
+                if 'netbox_role' not in zone_config:
+                    raise BundleError("zonetype is netbox, but no netbox_role defined")
+
+                # load all devices
+                netbox = loads(get_file_contents(join(repo.path, "data", "netbox", "netbox_devices.bw_export.json")))
+
+                items = {x: y for x, y in netbox.items() if y.get('Role', None) == zone_config['netbox_role']}
+
+                # filter by role
+                for name, item_config in items.items():
+                    if item_config.get('Status', 'inactive') != 'active':
+                        continue
+
+                    ipv4 = item_config.get('primary_interface', {}).get('ipv4', None)
+                    ipv6 = item_config.get('primary_interface', {}).get('ipv6', None)
+
+                    if ipv4:
+                        try:
+                            add_to_list_or_create(
+                                zonefiles[zone]['records'],
+                                name,
+                                {'type': 'A', 'value': str(ip_interface(ipv4).ip)}
+                            )
+                        except ValueError:
+                            print(f'{ipv4} is no IPv4')
+                            pass
+                    if ipv6:
+                        try:
+                            add_to_list_or_create(
+                                zonefiles[zone]['records'],
+                                name,
+                                {'type': 'AAAA', 'value': str(ip_interface(ipv6).ip)}
+                            )
+                        except ValueError:
+                            print(f'{ipv6} is no IPv6')
+                            pass
+
             elif zone_type == 'group':
                 if 'group' not in zone_config:
                     raise BundleError("zonetype is group, but no group defined")
