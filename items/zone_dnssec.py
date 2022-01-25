@@ -1,5 +1,5 @@
 from bundlewrap.items import Item, ItemStatus
-from bundlewrap.exceptions import BundleError
+from bundlewrap.exceptions import BundleError, RemoteException
 from bundlewrap.utils.text import force_text, mark_for_translation as _
 from bundlewrap.utils.remote import PathInfo
 
@@ -328,7 +328,11 @@ class ZoneDnssec(Item):
     def sdict(self):
         zone_name = add_dot(self.name)
 
-        res = self.node.run('pdnsutil show-zone {}'.format(zone_name), may_fail=True)
+        try:
+            res = self.node.run('pdnsutil show-zone {}'.format(zone_name), may_fail=True)
+        except RemoteException:
+            return None
+
         if res.return_code != 0:
             return None
 

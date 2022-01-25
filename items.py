@@ -1132,6 +1132,33 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
         backend_add_config = {
             'launch+': 'gmysql',
         }
+
+        # load dnssec keys
+        for zone, zone_config in config.get('zones', {}).items():
+            dnssec_config = zone_config.get('dnssec', None)
+
+            if dnssec_config:
+                keys = {}
+                for key in dnssec_config.get('keys', []):
+                    keys[key.get('public_key', {}).get('key', '')] = {
+                        'private_key': repo.vault.decrypt_file('dnssec/{}'.format(
+                            key.get('private_key_file', '{}.key'.format(zone)))).value,  # if not set, set to <zone>.key
+                        'public_key': key.get('public_key', {}),
+                        'active': key.get('active', False),
+                    }
+
+                if dnssec_config.get('disabled', False):
+                    zones_dnssec[zone] = {
+                        'disabled': True,
+                        'needs': ['pkg_apt:pdns-server', 'action:create_dnssec_db', ],
+                    }
+                else:
+                    zones_dnssec[zone] = {
+                        'keys': keys,
+                        'nsec3': dnssec_config.get('nsec3', False),
+                        'needs': ['pkg_apt:pdns-server', 'action:create_dnssec_db', ],
+                    }
+
     elif backend == 'bind':
         backend_config_filename = 'bind.conf'
         backend_default_config = {
@@ -1201,11 +1228,13 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
                 if dnssec_config.get('disabled', False):
                     zones_dnssec[zone] = {
                         'disabled': True,
+                        'needs': ['pkg_apt:pdns-server', 'action:create_dnssec_db', ],
                     }
                 else:
                     zones_dnssec[zone] = {
                         'keys': keys,
                         'nsec3': dnssec_config.get('nsec3', False),
+                        'needs': ['pkg_apt:pdns-server', 'action:create_dnssec_db', ],
                     }
 
             # create ns records we add a . to the end of every domain, since we assume they are absolute
