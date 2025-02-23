@@ -1038,6 +1038,9 @@ if recursor_config.get('enabled', False):
         'triggers': [
             "svc_systemd:pdns-recursor.service:restart"
         ],
+        'needs': [
+            'pkg_apt:pdns-server',
+        ],
     }
 
     forward_zones = [f'{x}=127.0.0.1:5300' for x in sorted(node.metadata.get('powerdns', {})
@@ -1050,6 +1053,9 @@ if recursor_config.get('enabled', False):
         'group': 'pdns',
         'triggers': [
             "svc_systemd:pdns-recursor.service:restart"
+        ],
+        'needs': [
+            'pkg_apt:pdns-server',
         ],
 
     }
@@ -1064,6 +1070,9 @@ files['/etc/powerdns/pdns.conf'] = {
     'group': 'pdns',
     'triggers': [
         "svc_systemd:pdns:restart"
+    ],
+    'needs': [
+        'pkg_apt:pdns-server',
     ],
 }
 
@@ -1097,6 +1106,9 @@ if 'supermasters' in node.metadata.get('powerdns', {}):
         'owner': 'pdns',
         'group': 'pdns',
         'mode': '0600',
+        'needs': [
+            'pkg_apt:pdns-server',
+        ],
     }
 
 directories = {}
@@ -1368,6 +1380,9 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
             'triggers': [
                 "svc_systemd:pdns:restart"
             ],
+            'needs': [
+                'pkg_apt:pdns-server',
+            ],
         }
 
     # set backend_config to backend_default_config
@@ -1389,6 +1404,9 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
             'group': 'pdns',
             'triggers': [
                 "svc_systemd:pdns:restart"
+            ],
+            'needs': [
+                'pkg_apt:pdns-server',
             ],
         }
     else:
