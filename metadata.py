@@ -4,6 +4,13 @@ if node.has_bundle("apt"):
     defaults['apt'] = {
         'packages': {
             'pdns-server': {'installed': True, },
+            # Install sqlite3 backend, to access dnssec db
+            'pdns-backend-sqlite3': {
+                'installed': True,
+                'needed_by': [
+                    'action:create_dnssec_db',
+                ]
+            },
             'dnsutils': {'installed': True, },
         }
     }
