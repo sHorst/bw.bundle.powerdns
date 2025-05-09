@@ -17,9 +17,21 @@ if node.has_bundle("apt"):
     if node.os == 'debian' and node.os_version[0] > 8:
         defaults['apt']['packages']['pdns-tools'] = {'installed': True, }
 
-if node.has_bundle('iptables'):
-    defaults += repo.libs.iptables.accept().chain('INPUT').tcp().dest_port(53)
-    defaults += repo.libs.iptables.accept().chain('INPUT').udp().dest_port(53)
+
+@metadata_reactor
+def add_iptables_rule(metadata):
+    if not node.has_bundle("iptables"):
+        raise DoNotRunAgain
+
+    interfaces = ['main_interface']
+    interfaces += metadata.get('powerdns/additional_interfaces', [])
+
+    meta_tables = {}
+    for interface in interfaces:
+        meta_tables += repo.libs.iptables.accept().chain('INPUT').input(interface).tcp().dest_port(53)
+        meta_tables += repo.libs.iptables.accept().chain('INPUT').input(interface).udp().dest_port(53)
+
+    return meta_tables
 
 
 @metadata_reactor

@@ -5,7 +5,7 @@ from bundlewrap.utils.remote import PathInfo
 
 import os
 import base64
-from pipes import quote
+from shlex import quote
 from tempfile import NamedTemporaryFile
 
 try:
