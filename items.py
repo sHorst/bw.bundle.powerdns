@@ -9,6 +9,10 @@ pkg_apt = {}
 files = {}
 svc_systemd = {}
 
+pdns_version = 4.8
+if node.os == 'debian' and node.os_version[0] >= 13:
+    pdns_version = 4.9
+
 
 def add_dot(url):
     if url[-1] != '.':
@@ -26,7 +30,7 @@ def add_to_list_or_create(ilist, list_key, value):
 
 def convert_to_config_string(value):
     if isinstance(value, list):
-        value = ','.join(value)
+        value = ', '.join(value)
     elif isinstance(value, bool):
         value = 'yes' if value else 'no'
     elif value is None:
@@ -78,6 +82,9 @@ svc_systemd['pdns'] = {'needs': ['pkg_apt:pdns-server', ], }
 
 
 pdns_default_config = {
+    'ignore-unknown-settings': {'comment': 'ignore-unknown-settings\t'
+                                           'Configuration settings to ignore if they are unknown',
+                                'default_value': '', 'min_version': 4.9},
     '8bit-dns': {'comment': '8bit-dns	Allow 8bit dns queries', 'default_value': False},
     'allow-axfr-ips': {'comment': 'allow-axfr-ips	Allow zonetransfers only to these subnets',
                        'default_value': ['127.0.0.0/8', '::1']},
@@ -89,13 +96,16 @@ pdns_default_config = {
         'default_value': ['0.0.0.0/0', '::/0']},
     # 'allow-recursion': {'comment': 'allow-recursion	List of subnets that are allowed to recurse',
     #                     'default_value': ['0.0.0.0/0']},
+    'allow-unsigned-autoprimary': {
+        'comment': 'allow-unsigned-autoprimary	Allow autoprimaries to create zones without TSIG signed NOTIFY',
+        'default_value': True, 'min_version': 4.9},
     'allow-unsigned-notify': {
-        'comment': 'allow-unsigned-notify	Allow unsigned notifications for TSIG secured domains',
+        'comment': 'allow-unsigned-notify	Allow unsigned notifications for TSIG secured zones',
         'default_value': True},
     'allow-unsigned-supermaster': {
         'comment': 'allow-unsigned-supermaster	Allow supermasters to create zones without TSIG signed NOTIFY',
-        'default_value': True},
-    'also-notify': {'comment': 'also-notify	When notifying a domain, also notify these nameservers',
+        'default_value': True, 'max_version': 4.8},
+    'also-notify': {'comment': 'also-notify	When notifying a zone, also notify these nameservers',
                     'default_value': ''},
     'any-to-tcp': {'comment': 'any-to-tcp	Answer ANY queries with tc=1, shunting to TCP', 'default_value': True},
     'api': {'comment': 'api	Enable/disable the REST API (including HTTP listener)', 'default_value': False},
@@ -105,16 +115,20 @@ pdns_default_config = {
     #                 'default_value': '/var/log/pdns.log'},
     # 'api-readonly': {'comment': 'api-readonly	Disallow data modification through the REST API when set',
     #                  'default_value': False},
+    'autosecondary': {'comment': 'autosecondary	Act as an autosecondary', 'default_value': False,
+                      'min_version': 4.9},
     'axfr-fetch-timeout': {'comment': 'axfr-fetch-timeout	Maximum time in seconds for inbound AXFR to start or '
                                       'be idle after starting',
                            'default_value': 10},
-    'axfr-lower-serial': {'comment': 'axfr-lower-serial	Also AXFR a zone from a master with a lower serial',
+    'axfr-lower-serial': {'comment': 'axfr-lower-serial	Also AXFR a zone from a primary with a lower serial',
                           'default_value': False},
     'cache-ttl': {'comment': 'cache-ttl	Seconds to store packets in the PacketCache', 'default_value': 20},
-    'carbon-instance': {'comment': 'carbon-instance	If set overwrites the the instance name default', 'default_value': 'auth'},
+    'carbon-instance': {'comment': 'carbon-instance	If set overwrites the instance name default',
+                        'default_value': 'auth'},
     'carbon-interval': {'comment': 'carbon-interval	Number of seconds between carbon (graphite) updates',
                         'default_value': 30},
-    'carbon-namespace': {'comment': 'carbon-namespace	If set overwrites the first part of the carbon string', 'default_value': 'pdns'},
+    'carbon-namespace': {'comment': 'carbon-namespace	If set overwrites the first part of the carbon string',
+                         'default_value': 'pdns'},
     'carbon-ourname': {'comment': 'carbon-ourname	If set, overrides our reported hostname for carbon stats',
                        'default_value': ''},
     'carbon-server': {
@@ -125,15 +139,23 @@ pdns_default_config = {
                    'default_value': '/etc/powerdns'},
     'config-name': {'comment': 'config-name	Name of this virtual configuration - will rename the binary image',
                     'default_value': ''},
-    'consistent-backends': {'comment': 'consistent-backends	Assume individual domains are not divided over backends. Send only ANY lookup operations to the backend to reduce the number of lookups', 'default_value': False},
+    'consistent-backends': {'comment': 'consistent-backends	Assume individual zones are not divided over backends. '
+                                       'Send only ANY lookup operations to the backend to reduce the number of lookups',
+                            'default_value': True},
     'control-console': {'comment': 'control-console	Debugging switch - don\'t use', 'default_value': False},
     'daemon': {'comment': 'daemon	Operate as a daemon', 'default_value': False},
-    'default-api-rectify': {'comment': 'default-api-rectify	Default API-RECTIFY value for zones', 'default_value': True},
+    'default-api-rectify': {'comment': 'default-api-rectify	Default API-RECTIFY value for zones',
+                            'default_value': True},
+    'default-catalog-zone': {'comment': 'default-catalog-zone	Catalog zone to assign newly created primary '
+                                        'zones (via the API) to', 'default_value': '', 'min_version': 4.9},
     'default-ksk-algorithm': {'comment': 'default-ksk-algorithm	Default KSK algorithm', 'default_value': 'ecdsa256'},
     'default-ksk-size': {'comment': 'default-ksk-size	Default KSK size (0 means default)', 'default_value': 0},
-    'default-publish-cdnskey': {'comment': 'default-publish-cdnskey	Default value for PUBLISH-CDNSKEY', 'default_value': ''},
+    'default-publish-cdnskey': {'comment': 'default-publish-cdnskey	Default value for PUBLISH-CDNSKEY',
+                                'default_value': ''},
     'default-publish-cds': {'comment': 'default-publish-cds	Default value for PUBLISH-CDS', 'default_value': ''},
-    'default-soa-content': {'comment': 'default-soa-content	Default SOA content', 'default_value': 'a.misconfigured.dns.server.invalid hostmaster.@ 0 10800 3600 604800 3600'},
+    'default-soa-content': {'comment': 'default-soa-content	Default SOA content',
+                            'default_value': 'a.misconfigured.dns.server.invalid '
+                                             'hostmaster.@ 0 10800 3600 604800 3600'},
     'default-soa-edit': {'comment': 'default-soa-edit	Default SOA-EDIT value', 'default_value': ''},
     'default-soa-edit-signed': {'comment': 'default-soa-edit-signed	Default SOA-EDIT value for signed zones',
                                 'default_value': ''},
@@ -145,7 +167,10 @@ pdns_default_config = {
     'default-ttl': {'comment': 'default-ttl	Seconds a result is valid if not set otherwise', 'default_value': 3600},
     'default-zsk-algorithm': {'comment': 'default-zsk-algorithm	Default ZSK algorithm', 'default_value': ''},
     'default-zsk-size': {'comment': 'default-zsk-size	Default ZSK size (0 means default)', 'default_value': 0},
-    'direct-dnskey': {'comment': 'direct-dnskey	Fetch DNSKEY, CDS and CDNSKEY RRs from backend during DNSKEY or CDS/CDNSKEY synthesis',
+    'delay-notifications': {'comment': 'delay-notifications	Configure a delay to send out notifications, '
+                                       'no delay by default', 'default_value': 0, 'min_version': 4.9},
+    'direct-dnskey': {'comment': 'direct-dnskey	Fetch DNSKEY, CDS and CDNSKEY RRs from backend during '
+                                 'DNSKEY or CDS/CDNSKEY synthesis',
                       'default_value': False},
     'disable-axfr': {'comment': 'disable-axfr	Disable zonetransfers but do allow TCP queries',
                      'default_value': False},
@@ -168,11 +193,18 @@ pdns_default_config = {
     # 'do-ipv6-additional-processing': {'comment': 'do-ipv6-additional-processing	Do AAAA additional processing',
     #                                   'default_value': True},
     'domain-metadata-cache-ttl': {
-        'comment': 'domain-metadata-cache-ttl	Seconds to cache domain metadata from the database',
-        'default_value': 60},
+        'comment': 'domain-metadata-cache-ttl	Seconds to cache zone metadata from the database',
+        'default_value': ''},
+    'edns-cookie-secret': {
+        'comment': 'edns-cookie-secret	When set, set a server cookie when responding to a query with a '
+                   'Client cookie (in hex)',
+        'default_value': '',
+        'min_version': 4.9,
+    },
     'edns-subnet-processing': {'comment': 'edns-subnet-processing	If we should act on EDNS Subnet options',
                                'default_value': False},
-    'enable-lua-records': {'comment': 'enable-lua-records	Process LUA records for all zones (metadata overrides this)', 'default_value': False},
+    'enable-lua-records': {'comment': 'enable-lua-records	Process LUA records for all zones (metadata overrides this)',
+                           'default_value': False},
     'entropy-source': {'comment': 'entropy-source	If set, read entropy from this file',
                        'default_value': '/dev/urandom'},
     'expand-alias': {'comment': 'expand-alias	Expand ALIAS records', 'default_value': False},
@@ -180,24 +212,26 @@ pdns_default_config = {
     #                                    'default_value': ''},
     'forward-dnsupdate': {
         'comment': 'forward-dnsupdate	'
-                   'A global setting to allow DNS update packages that are for a Slave domain, '
-                   'to be forwarded to the master.',
+                   'A global setting to allow DNS update packages that are for a Secondary zone, '
+                   'to be forwarded to the primary.',
         'default_value': True},
     'forward-notify': {
         'comment': 'forward-notify	'
-                   'IP addresses to forward received notifications to regardless of master or slave settings',
+                   'IP addresses to forward received notifications to regardless of primary or secondary settings',
         'default_value': ''},
     'guardian': {'comment': 'guardian	Run within a guardian process', 'default_value': False},
     'include-dir': {'comment': 'include-dir	Include *.conf files from this directory', 'default_value': ''},
     'launch': {'comment': 'launch	Which backends to launch and order to query them in', 'default_value': None},
     'load-modules': {'comment': 'load-modules	Load this module - supply absolute or relative path',
                      'default_value': ''},
-    'local-address': {'comment': 'local-address	Local IP addresses to which we bind', 'default_value': ['0.0.0.0', '::']},
+    'local-address': {'comment': 'local-address	Local IP addresses to which we bind',
+                      'default_value': ['0.0.0.0', '::']},
     'local-address-nonexist-fail': {
         'comment': 'local-address-nonexist-fail	Fail to start if one or more of '
                    'the local-address\'s do not exist on this server',
         'default_value': True},
-    'local-ipv6': {'comment': 'local-ipv6	DEPRECATED, will be removed, move your IPs to local-address', 'default_value': '::'},
+    'local-ipv6': {'comment': 'local-ipv6	DEPRECATED, will be removed, move your IPs to local-address',
+                   'default_value': '::', 'max_version': 4.8},
     # 'local-ipv6-nonexist-fail': {
     #     'comment': 'local-ipv6-nonexist-fail	Fail to start if one or more of '
     #                'the local-ipv6 addresses do not exist on this server',
@@ -210,20 +244,39 @@ pdns_default_config = {
     'log-timestamp': {'comment': 'log-timestamp	Print timestamps in log lines', 'default_value': True},
     'logging-facility': {'comment': 'logging-facility	Log under a specific facility', 'default_value': ''},
     'loglevel': {'comment': 'loglevel	Amount of logging. Higher is more. Do not set below 3', 'default_value': 4},
+    'loglevel-show': {'comment': 'loglevel-show	Include log level indicator in log output',
+                      'default_value': False},
     'lua-axfr-script': {'comment': 'lua-axfr-script	Script to be used to edit incoming AXFRs', 'default_value': ''},
-    'lua-dnsupdate-policy-script': {
-        'comment': 'lua-dnsupdate-policy-script	Lua script with DNS update policy handler', 'default_value': ''},
-    'lua-health-checks-expire-delay': {'comment': 'lua-health-checks-expire-delay	Stops doing health checks after the record hasn\'t been used for that delay (in seconds)', 'default_value': 3600},
-    'lua-health-checks-interval': {'comment': 'lua-health-checks-interval	LUA records health checks monitoring interval in seconds', 'default_value': 5},
+    'lua-consistent-hashes-cleanup-interval': {'comment': 'lua-consistent-hashes-cleanup-interval	Pre-computed '
+                                                          'hashes cleanup interval (in seconds)',
+                                               'default_value': 3600, 'min_version': 4.9},
+    'lua-consistent-hashes-expire-delay': {'comment': 'lua-consistent-hashes-expire-delay	Cleanup pre-computed hashes '
+                                                      'that haven\'t been used for the given delay (in seconds). '
+                                                      'See pickchashed() LUA function',
+                                           'default_value': 86400, 'min_version': 4.9},
+    'lua-dnsupdate-policy-script': {'comment': 'lua-dnsupdate-policy-script	Lua script with DNS update policy handler',
+                                    'default_value': ''},
+    'lua-health-checks-expire-delay': {'comment': 'lua-health-checks-expire-delay	Stops doing health checks after '
+                                                  'the record hasn\'t been used for that delay (in seconds)',
+                                       'default_value': 3600},
+    'lua-health-checks-interval': {'comment': 'lua-health-checks-interval	LUA records health checks monitoring '
+                                              'interval in seconds', 'default_value': 5},
     'lua-prequery-script': {'comment': 'lua-prequery-script	Lua script with prequery handler (DO NOT USE)',
                             'default_value': ''},
-    'lua-records-exec-limit': {'comment': 'lua-records-exec-limit	LUA records scripts execution limit (instructions count). Values <= 0 mean no limit', 'default_value': 1000},
-    'master': {'comment': 'master	Act as a master', 'default_value': False},
+    'lua-records-exec-limit': {'comment': 'lua-records-exec-limit	LUA records scripts execution limit '
+                                          '(instructions count). Values <= 0 mean no limit', 'default_value': 1000},
+    'lua-records-insert-whitespace': {'comment': 'lua-records-insert-whitespace	Insert whitespace when combining LUA '
+                                                 'chunks', 'default_value': True, 'min_version': 4.9},
+    'master': {'comment': 'master	Act as a master', 'default_value': False, 'max_version': 4.8},
     'max-cache-entries': {'comment': 'max-cache-entries	Maximum number of entries in the query cache',
                           'default_value': 1000000},
     'max-ent-entries': {'comment': 'max-ent-entries	Maximum number of empty non-terminals in a zone',
                         'default_value': 100000},
-    'max-generate-steps': {'comment': 'max-generate-steps	Maximum number of $GENERATE steps when loading a zone from a file', 'default_value': 0},
+    'max-generate-steps': {'comment': 'max-generate-steps	Maximum number of $GENERATE steps when loading a zone '
+                                      'from a file', 'default_value': 0},
+    'max-include-depth': {'comment': 'max-include-depth	Maximum number of nested $INCLUDE directives while processing '
+                                     'a zone file',
+                          'default_value': 20, 'min_version': 4.9},
     'max-nsec3-iterations': {'comment': 'max-nsec3-iterations	Limit the number of NSEC3 hash iterations',
                              'default_value': 500},
     'max-packet-cache-entries': {'comment': 'max-packet-cache-entries	Maximum number of entries in the packet cache',
@@ -262,13 +315,20 @@ pdns_default_config = {
     'prevent-self-notification': {
         'comment': 'prevent-self-notification	Don\'t send notifications to what we think is ourself',
         'default_value': True},
+    'primary': {'comment': 'primary	Act as a primary', 'default_value': False, 'min_version': 4.9},
+    'proxy-protocol-from': {'comment': 'proxy-protocol-from	A Proxy Protocol header is only allowed from these '
+                                       'subnets, and is mandatory then too.',
+                            'default_value': '', 'min_version': 4.9},
+    'proxy-protocol-maximum-size': {'comment': 'proxy-protocol-maximum-size	The maximum size of a proxy protocol '
+                                               'payload, including the TLV values',
+                                    'default_value': '512', 'min_version': 4.9},
     'query-cache-ttl': {'comment': 'query-cache-ttl	Seconds to store query results in the QueryCache',
                         'default_value': 20},
     'query-local-address': {'comment': 'query-local-address	Source IP addresses for sending queries',
                             'default_value': '0.0.0.0 ::'},
     'query-local-address6': {'comment': 'query-local-address6	DEPRECATED: Use query-local-address. Source IPv6 '
                                         'address for sending queries',
-                             'default_value': ''},
+                             'default_value': '', 'max_version': 4.8},
     'query-logging': {'comment': 'query-logging	Hint backends that queries should be logged',
                       'default_value': False},
     'queue-limit': {'comment': 'queue-limit	Maximum number of milliseconds to queue a query', 'default_value': 1500},
@@ -281,7 +341,7 @@ pdns_default_config = {
     #              'default_value': False},
     'resolver': {'comment': 'resolver	Use this resolver for ALIAS and the internal stub resolver',
                  'default_value': False},
-    'retrieval-threads': {'comment': 'retrieval-threads	Number of AXFR-retrieval threads for slave operation',
+    'retrieval-threads': {'comment': 'retrieval-threads	Number of AXFR-retrieval threads for secondary operation',
                           'default_value': 2},
     'reuseport': {
         'comment': 'reuseport	Enable higher performance on compliant kernels by using SO_REUSEPORT '
@@ -289,11 +349,19 @@ pdns_default_config = {
         'default_value': False},
     'rng': {'comment': 'rng	Specify the random number generator to use. Valid values are auto,sodium,openssl,'
                        'getrandom,arc4random,urandom.', 'default_value': 'auto'},
+    'secondary': {'comment': 'secondary	Act as a secondary', 'default_value': False, 'min_version': 4.9},
+    'secondary-check-signature-freshness': {'comment': 'secondary-check-signature-freshness	Check signatures in SOA '
+                                                       'freshness check. Sets DO flag on SOA queries. '
+                                                       'Outside some very problematic scenarios, say yes here.',
+                                            'default_value': True, 'min_version': 4.9},
+    'secondary-do-renotify': {'comment': 'secondary-do-renotify	If this secondary should send out notifications after '
+                                         'receiving zone transfers from a primary',
+                              'default_value': False, 'min_version': 4.9},
     'security-poll-suffix': {
-        'comment': 'security-poll-suffix	Domain name from which to query security update notifications',
+        'comment': 'security-poll-suffix	Zone name from which to query security update notifications',
         'default_value': 'secpoll.powerdns.com.'},
     'send-signed-notify': {'comment': 'send-signed-notify	Send TSIG secured NOTIFY if TSIG key is configured for '
-                                      'a domain',
+                                      'a zone',
                            'default_value': True},
     'server-id': {
         'comment': 'server-id	Returned when queried for \'id.server\' TXT or NSID, defaults to hostname '
@@ -302,11 +370,11 @@ pdns_default_config = {
     'setgid': {'comment': 'setgid	If set, change group id to this gid for more security', 'default_value': ''},
     'setuid': {'comment': 'setuid	If set, change user id to this uid for more security', 'default_value': ''},
     'signing-threads': {'comment': 'signing-threads	Default number of signer threads to start', 'default_value': 3},
-    'slave': {'comment': 'slave	Act as a slave', 'default_value': False},
+    'slave': {'comment': 'slave	Act as a slave', 'default_value': False, 'max_version': 4.8},
     'slave-cycle-interval': {'comment': 'slave-cycle-interval	Schedule slave freshness checks once every .. seconds',
-                             'default_value': 60},
+                             'default_value': 60, 'max_version': 4.8},
     'slave-renotify': {'comment': 'slave-renotify	If we should send out notifications for slaved updates',
-                       'default_value': False},
+                       'default_value': False, 'max_version': 4.8},
     # 'soa-expire-default': {'comment': 'soa-expire-default	Default SOA expire', 'default_value': 604800},
     # 'soa-minimum-ttl': {'comment': 'soa-minimum-ttl	Default SOA minimum ttl', 'default_value': 3600},
     # 'soa-refresh-default': {'comment': 'soa-refresh-default	Default SOA refresh', 'default_value': 10800},
@@ -315,7 +383,12 @@ pdns_default_config = {
                               'chrooted. Set to the RUNTIME_DIRECTORY environment variable when that variable has '
                               'a value (e.g. under systemd).',
                    'default_value': ''},
-    'superslave': {'comment': 'superslave	Act as a superslave', 'default_value': False},
+    'svc-autohints': {
+        'comment': 'svc-autohints	Transparently fill ipv6hint=auto ipv4hint=auto SVC params with AAAA/A records '
+                   'for the target name of the record (if within the same zone)',
+        'default_value': False, 'min_version': 4.9
+    },
+    'superslave': {'comment': 'superslave	Act as a superslave', 'default_value': False, 'max_version': 4.8},
     'tcp-control-address': {
         'comment': 'tcp-control-address	If set, PowerDNS can be controlled over TCP on this address',
         'default_value': ''},
@@ -353,6 +426,14 @@ pdns_default_config = {
     'webserver-allow-from': {
         'comment': 'webserver-allow-from	Webserver/API access is only allowed from these subnets',
         'default_value': ['127.0.0.1', '::1']},
+
+    'webserver-connection-timeout': {'comment': 'webserver-connection-timeout	Webserver/API request/response timeout '
+                                                'in seconds',
+                                     'default_value': 5, 'min_version': 4.9},
+    'webserver-hash-plaintext-credentials': {'comment': 'webserver-hash-plaintext-credentials	Whether to hash '
+                                                        'passwords and api keys supplied in plaintext, to prevent '
+                                                        'keeping the plaintext version in memory at runtime',
+                                             'default_value': False, 'min_version': 4.9},
     'webserver-loglevel': {'comment': 'webserver-loglevel	Amount of logging in the webserver (none, normal, detailed)',
                            'default_value': 'normal'},
     'webserver-max-bodysize': {'comment': 'webserver-max-bodysize	Webserver/API maximum request/response '
@@ -363,10 +444,22 @@ pdns_default_config = {
     'webserver-port': {'comment': 'webserver-port	Port of webserver/API to listen on', 'default_value': 8081},
     'webserver-print-arguments': {'comment': 'webserver-print-arguments	If the webserver should print arguments',
                                   'default_value': False},
+    'workaround-11804': {
+        'comment': 'workaround-11804	Workaround for issue 11804: send single RR per AXFR chunk',
+        'default_value': False, 'min_version': 4.9},
     'write-pid': {'comment': 'write-pid	Write a PID file', 'default_value': True},
+    'xfr-cycle-interval': {
+        'comment': 'xfr-cycle-interval	Schedule primary/secondary SOA freshness checks once every .. seconds',
+        'default_value': 60, 'min_version': 4.9},
     'xfr-max-received-mbytes': {
         'comment': 'xfr-max-received-mbytes	Maximum number of megabytes received from an incoming XFR',
         'default_value': 100},
+    'zone-cache-refresh-interval': {
+        'comment': 'zone-cache-refresh-interval	Seconds to cache list of known zones',
+        'default_value': 300, 'min_version': 4.9},
+    'zone-metadata-cache-ttl': {
+        'comment': 'zone-metadata-cache-ttl	Seconds to cache zone metadata from the database',
+        'default_value': 60, 'min_version': 4.9},
 }
 
 
@@ -376,7 +469,8 @@ pdns_recursor_default_config = {
                                     '172.16.0.0/12, ::1/128, fc00::/7, fe80::/10', },
     'allow-from-file': {'comment': 'allow-from-file	If set, load allowed netmasks from this file',
                         'default_value': '', },
-    'allow-trust-anchor-query': {'comment': 'allow-trust-anchor-query	Allow queries for trustanchor.server CH TXT and negativetrustanchor.server CH TXT', 'default_value': False},
+    'allow-trust-anchor-query': {'comment': 'allow-trust-anchor-query	Allow queries for trustanchor.server CH TXT '
+                                            'and negativetrustanchor.server CH TXT', 'default_value': False},
 
     'any-to-tcp': {'comment': 'any-to-tcp	Answer ANY queries with tc=1, shunting to TCP', 'default_value': False, },
     'api-config-dir': {'comment': 'api-config-dir	Directory where REST API stores config and zones',
@@ -390,11 +484,13 @@ pdns_recursor_default_config = {
     'auth-zones': {
         'comment': 'auth-zones	Zones for which we have authoritative data, comma separated domain=file pairs ',
         'default_value': '', },
-    'carbon-instance': {'comment': 'carbon-instance	If set overwrites the the instance name default', 'default_value': 'recursor'},
+    'carbon-instance': {'comment': 'carbon-instance	If set overwrites the the instance name default',
+                        'default_value': 'recursor'},
 
     'carbon-interval': {'comment': 'carbon-interval	Number of seconds between carbon (graphite) updates',
                         'default_value': 30, },
-    'carbon-namespace': {'comment': 'carbon-namespace	If set overwrites the first part of the carbon string', 'default_value': 'pdns'},
+    'carbon-namespace': {'comment': 'carbon-namespace	If set overwrites the first part of the carbon string',
+                         'default_value': 'pdns'},
     'carbon-ourname': {'comment': 'carbon-ourname	If set, overrides our reported hostname for carbon stats',
                        'default_value': '', },
     'carbon-server': {
@@ -416,9 +512,13 @@ pdns_recursor_default_config = {
     'disable-syslog': {
         'comment': 'disable-syslog	Disable logging to syslog, useful when running inside a supervisor that logs stdout',
         'default_value': False, },
-    'distribution-load-factor': {'comment': 'distribution-load-factor	The load factor used when PowerDNS is distributing queries to worker threads', 'default_value': 0.0},
-    'distribution-pipe-buffer-size': {'comment': 'distribution-pipe-buffer-size	Size in bytes of the internal buffer of the pipe used by the distributor to pass incoming queries to a worker thread', 'default_value': 0},
-    'distributor-threads': {'comment': 'distributor-threads	Launch this number of distributor threads, distributing queries to other threads', 'default_value': 0},
+    'distribution-load-factor': {'comment': 'distribution-load-factor	The load factor used when PowerDNS is '
+                                            'distributing queries to worker threads', 'default_value': 0.0},
+    'distribution-pipe-buffer-size': {'comment': 'distribution-pipe-buffer-size	Size in bytes of the internal buffer '
+                                                 'of the pipe used by the distributor to pass incoming queries to a '
+                                                 'worker thread', 'default_value': 0},
+    'distributor-threads': {'comment': 'distributor-threads	Launch this number of distributor threads, distributing '
+                                       'queries to other threads', 'default_value': 0},
     'dns64-prefix': {'comment': 'dns64-prefix	DNS64 prefix', 'default_value': ''},
 
     'dnssec': {'comment': 'dnssec	DNSSEC mode: off/process-no-validate (default)/process/log-fail/validate',
@@ -429,19 +529,27 @@ pdns_recursor_default_config = {
                                     '172.16.0.0/12, ::1/128, fc00::/7, fe80::/10, 0.0.0.0/8, 192.0.0.0/24, '
                                     '192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24, 240.0.0.0/4, ::/96, '
                                     '::ffff:0:0/96, 100::/64, 2001:db8::/32', },
-    'dont-throttle-names': {'comment': 'dont-throttle-names	Do not throttle nameservers with this name or suffix', 'default_value': ''},
-    'dont-throttle-netmasks': {'comment': 'dont-throttle-netmasks	Do not throttle nameservers with this IP netmask', 'default_value': ''},
-    'ecs-add-for': {'comment': 'ecs-add-for	List of client netmasks for which EDNS Client Subnet will be added', 'default_value': ['0.0.0.0/0', '::/0', '!127.0.0.0/8', '!10.0.0.0/8', '!100.64.0.0/10', '!169.254.0.0/16', '!192.168.0.0/16', '!172.16.0.0/12', '!::1/128', '!fc00::/7', '!fe80::/10']},
+    'dont-throttle-names': {'comment': 'dont-throttle-names	Do not throttle nameservers with this name or suffix',
+                            'default_value': ''},
+    'dont-throttle-netmasks': {'comment': 'dont-throttle-netmasks	Do not throttle nameservers with this IP netmask',
+                               'default_value': ''},
+    'ecs-add-for': {'comment': 'ecs-add-for	List of client netmasks for which EDNS Client Subnet will be added',
+                    'default_value': ['0.0.0.0/0', '::/0', '!127.0.0.0/8', '!10.0.0.0/8', '!100.64.0.0/10',
+                                      '!169.254.0.0/16', '!192.168.0.0/16', '!172.16.0.0/12', '!::1/128',
+                                      '!fc00::/7', '!fe80::/10']},
     'ecs-cache-limit-ttl': {'comment': 'ecs-cache-limit-ttl	Minimum TTL to cache ECS response', 'default_value': 0},
 
     'ecs-ipv4-bits': {'comment': 'ecs-ipv4-bits	Number of bits of IPv4 address to pass for EDNS Client Subnet',
                       'default_value': 24, },
-    'ecs-ipv4-cache-bits': {'comment': 'ecs-ipv4-cache-bits	Maximum number of bits of IPv4 mask to cache ECS response', 'default_value': 24},
+    'ecs-ipv4-cache-bits': {'comment': 'ecs-ipv4-cache-bits	Maximum number of bits of IPv4 mask to cache ECS response',
+                            'default_value': 24},
 
     'ecs-ipv6-bits': {'comment': 'ecs-ipv6-bits	Number of bits of IPv6 address to pass for EDNS Client Subnet',
                       'default_value': 56, },
-    'ecs-ipv6-cache-bits': {'comment': 'ecs-ipv6-cache-bits	Maximum number of bits of IPv6 mask to cache ECS response', 'default_value': 56},
-    'ecs-minimum-ttl-override': {'comment': 'ecs-minimum-ttl-override	Set under adverse conditions, a minimum TTL for records in ECS-specific answers', 'default_value': 0},
+    'ecs-ipv6-cache-bits': {'comment': 'ecs-ipv6-cache-bits	Maximum number of bits of IPv6 mask to cache ECS response',
+                            'default_value': 56},
+    'ecs-minimum-ttl-override': {'comment': 'ecs-minimum-ttl-override	Set under adverse conditions, a minimum TTL '
+                                            'for records in ECS-specific answers', 'default_value': 0},
 
     'ecs-scope-zero-address': {
         'comment': 'ecs-scope-zero-address	Address to send to whitelisted authoritative servers for '
@@ -500,14 +608,19 @@ pdns_recursor_default_config = {
         'comment': 'lua-dns-script	Filename containing an optional \'lua\' script that will be '
                    'used to modify dns answers',
         'default_value': '', },
-    'lua-maintenance-interval': {'comment': 'lua-maintenance-interval	Number of seconds between calls to the lua user defined maintenance() function', 'default_value': 1},
-    'max-cache-bogus-ttl': {'comment': 'max-cache-bogus-ttl	maximum number of seconds to keep a Bogus (positive or negative) cached entry in memory', 'default_value': 3600},
+    'lua-maintenance-interval': {'comment': 'lua-maintenance-interval	Number of seconds between calls to the lua user '
+                                            'defined maintenance() function', 'default_value': 1},
+    'max-cache-bogus-ttl': {'comment': 'max-cache-bogus-ttl	maximum number of seconds to keep a Bogus (positive or '
+                                       'negative) cached entry in memory', 'default_value': 3600},
     'max-cache-entries': {'comment': 'max-cache-entries	If set, maximum number of entries in the main cache',
                           'default_value': 1000000, },
     'max-cache-ttl': {'comment': 'max-cache-ttl	maximum number of seconds to keep a cached entry in memory',
                       'default_value': 86400, },
-    'max-concurrent-requests-per-tcp-connection': {'comment': 'max-concurrent-requests-per-tcp-connection	Maximum number of requests handled concurrently per TCP connection', 'default_value': 10},
-    'max-generate-steps': {'comment': 'max-generate-steps	Maximum number of $GENERATE steps when loading a zone from a file', 'default_value': 0},
+    'max-concurrent-requests-per-tcp-connection': {'comment': 'max-concurrent-requests-per-tcp-connection	Maximum '
+                                                              'number of requests handled concurrently per TCP '
+                                                              'connection', 'default_value': 10},
+    'max-generate-steps': {'comment': 'max-generate-steps	Maximum number of $GENERATE steps when loading a zone from '
+                                      'a file', 'default_value': 0},
 
     'max-mthreads': {'comment': 'max-mthreads	Maximum number of simultaneous Mtasker threads',
                      'default_value': 2048, },
@@ -546,7 +659,10 @@ pdns_recursor_default_config = {
     'non-local-bind': {
         'comment': 'non-local-bind	Enable binding to non-local addresses by using FREEBIND / BINDANY socket options',
         'default_value': False, },
-'nothing-below-nxdomain': {'comment': 'nothing-below-nxdomain	When an NXDOMAIN exists in cache for a name with fewer labels than the qname, send NXDOMAIN without doing a lookup (see RFC 8020)', 'default_value': 'dnssec'},
+    'nothing-below-nxdomain': {'comment': 'nothing-below-nxdomain	When an NXDOMAIN exists in cache for a name with '
+                                          'fewer labels than the qname, send NXDOMAIN without doing a lookup '
+                                          '(see RFC 8020)',
+                               'default_value': 'dnssec'},
 
     'nsec3-max-iterations': {
         'comment': 'nsec3-max-iterations	Maximum number of iterations allowed for an NSEC3 record',
@@ -561,25 +677,33 @@ pdns_recursor_default_config = {
         'default_value': True, },
     'processes': {'comment': 'processes	Launch this number of processes (EXPERIMENTAL, DO NOT CHANGE)',
                   'default_value': 1, },
-    'protobuf-use-kernel-timestamp': {'comment': 'protobuf-use-kernel-timestamp	Compute the latency of queries in protobuf messages by using the timestamp set by the kernel when the query was received (when available)', 'default_value': ''},
-    'proxy-protocol-from': {'comment': 'proxy-protocol-from	A Proxy Protocol header is only allowed from these subnets', 'default_value': ''},
-    'proxy-protocol-maximum-size': {'comment': 'proxy-protocol-maximum-size	The maximum size of a proxy protocol payload, including the TLV values', 'default_value': 512},
-    'public-suffix-list-file': {'comment': 'public-suffix-list-file	Path to the Public Suffix List file, if any', 'default_value': ''},
+    'protobuf-use-kernel-timestamp': {'comment': 'protobuf-use-kernel-timestamp	Compute the latency of queries in '
+                                                 'protobuf messages by using the timestamp set by the kernel when the '
+                                                 'query was received (when available)', 'default_value': ''},
+    'proxy-protocol-from': {'comment': 'proxy-protocol-from	A Proxy Protocol header is only allowed from these subnets',
+                            'default_value': ''},
+    'proxy-protocol-maximum-size': {'comment': 'proxy-protocol-maximum-size	The maximum size of a proxy protocol '
+                                               'payload, including the TLV values', 'default_value': 512},
+    'public-suffix-list-file': {'comment': 'public-suffix-list-file	Path to the Public Suffix List file, if any',
+                                'default_value': ''},
     'qname-minimization': {'comment': 'qname-minimization	Use Query Name Minimization', 'default_value': True},
 
     'query-local-address': {'comment': 'query-local-address	Source IP address for sending queries',
                             'default_value': '0.0.0.0', },
     'query-local-address6': {
-        'comment': 'query-local-address6	DEPRECATED: Use query-local-address for IPv6 as well. Source IPv6 address for sending queries. IF UNSET, IPv6 WILL NOT BE USED FOR OUTGOING QUERIES',
+        'comment': 'query-local-address6	DEPRECATED: Use query-local-address for IPv6 as well. Source IPv6 address '
+                   'for sending queries. IF UNSET, IPv6 WILL NOT BE USED FOR OUTGOING QUERIES',
         'default_value': '', },
     'quiet': {'comment': 'quiet	Suppress logging of questions and answers', 'default_value': None, 'mandatory': True, },
-    'record-cache-shards': {'comment': 'record-cache-shards	Number of shards in the record cache', 'default_value': 1024},
+    'record-cache-shards': {'comment': 'record-cache-shards	Number of shards in the record cache',
+                            'default_value': 1024},
 
     'reuseport': {
         'comment': 'reuseport	Enable SO_REUSEPORT allowing multiple recursors processes to listen to 1 address',
         'default_value': False, },
     'rng': {
-        'comment': 'rng	Specify random number generator to use. Valid values are auto,sodium,openssl,getrandom,arc4random,urandom.',
+        'comment': 'rng	Specify random number generator to use. Valid values are '
+                   'auto,sodium,openssl,getrandom,arc4random,urandom.',
         'default_value': 'auto'},
     'root-nx-trust': {
         'comment': 'root-nx-trust	If set, believe that an NXDOMAIN from the root means the TLD does not exist',
@@ -597,11 +721,15 @@ pdns_recursor_default_config = {
         'comment': 'server-down-throttle-time	Number of seconds to throttle all queries to a server '
                    'after being marked as down',
         'default_value': 60, },
-    'server-id': {'comment': 'server-id	Returned when queried for \'id.server\' TXT or NSID, defaults to hostname, set custom or \'disabled\'',
+    'server-id': {'comment': 'server-id	Returned when queried for \'id.server\' TXT or NSID, defaults to hostname, '
+                             'set custom or \'disabled\'',
                   'default_value': '', },
-    'setgid': {'comment': 'setgid	If set, change group id to this gid for more security. When running inside systemd, use the User and Group settings in the unit-file!', 'default_value': ''},
-    'setuid': {'comment': 'setuid	If set, change user id to this uid for more security. When running inside systemd, use the User and Group settings in the unit-file!', 'default_value': ''},
-    'signature-inception-skew': {'comment': 'signature-inception-skew	Allow the signature inception to be off by this number of seconds', 'default_value': 60},
+    'setgid': {'comment': 'setgid	If set, change group id to this gid for more security. When running inside systemd, '
+                          'use the User and Group settings in the unit-file!', 'default_value': ''},
+    'setuid': {'comment': 'setuid	If set, change user id to this uid for more security. When running inside systemd, '
+                          'use the User and Group settings in the unit-file!', 'default_value': ''},
+    'signature-inception-skew': {'comment': 'signature-inception-skew	Allow the signature inception to be off by this '
+                                            'number of seconds', 'default_value': 60},
 
     'single-socket': {'comment': 'single-socket	If set, only use a single socket for outgoing queries',
                       'default_value': 'off', },
@@ -610,7 +738,9 @@ pdns_recursor_default_config = {
         'comment': 'snmp-master-socket	If set and snmp-agent is set, the socket to use to register to the SNMP master',
         'default_value': '', },
     'soa-minimum-ttl': {'comment': 'soa-minimum-ttl	Don\'t change', 'default_value': '0', },
-    'socket-dir': {'comment': 'socket-dir	Where the controlsocket will live, /var/run/pdns-recursor when unset and not chrooted. Set to the RUNTIME_DIRECTORY environment variable when that variable has a value (e.g. under systemd).',
+    'socket-dir': {'comment': 'socket-dir	Where the controlsocket will live, /var/run/pdns-recursor when unset and '
+                              'not chrooted. Set to the RUNTIME_DIRECTORY environment variable when that variable has '
+                              'a value (e.g. under systemd).',
                    'default_value': '', },
     'socket-group': {'comment': 'socket-group	Group of socket', 'default_value': '', },
     'socket-mode': {'comment': 'socket-mode	Permissions for socket', 'default_value': '', },
@@ -621,340 +751,29 @@ pdns_recursor_default_config = {
     'statistics-interval': {
         'comment': 'statistics-interval	Number of seconds between printing of recursor statistics, 0 to disable',
         'default_value': 1800, },
-    'stats-api-blacklist': {'comment': 'stats-api-blacklist	List of statistics that are disabled when retrieving the complete list of statistics via the API',
-                            'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage',
-                                              'ecs-v4-response-bits-1', 'ecs-v4-response-bits-2',
-                                              'ecs-v4-response-bits-3', 'ecs-v4-response-bits-4',
-                                              'ecs-v4-response-bits-5', 'ecs-v4-response-bits-6',
-                                              'ecs-v4-response-bits-7', 'ecs-v4-response-bits-8',
-                                              'ecs-v4-response-bits-9', 'ecs-v4-response-bits-10',
-                                              'ecs-v4-response-bits-11', 'ecs-v4-response-bits-12',
-                                              'ecs-v4-response-bits-13', 'ecs-v4-response-bits-14',
-                                              'ecs-v4-response-bits-15', 'ecs-v4-response-bits-16',
-                                              'ecs-v4-response-bits-17', 'ecs-v4-response-bits-18',
-                                              'ecs-v4-response-bits-19', 'ecs-v4-response-bits-20',
-                                              'ecs-v4-response-bits-21', 'ecs-v4-response-bits-22',
-                                              'ecs-v4-response-bits-23', 'ecs-v4-response-bits-24',
-                                              'ecs-v4-response-bits-25', 'ecs-v4-response-bits-26',
-                                              'ecs-v4-response-bits-27', 'ecs-v4-response-bits-28',
-                                              'ecs-v4-response-bits-29', 'ecs-v4-response-bits-30',
-                                              'ecs-v4-response-bits-31', 'ecs-v4-response-bits-32',
-                                              'ecs-v6-response-bits-1', 'ecs-v6-response-bits-2',
-                                              'ecs-v6-response-bits-3', 'ecs-v6-response-bits-4',
-                                              'ecs-v6-response-bits-5', 'ecs-v6-response-bits-6',
-                                              'ecs-v6-response-bits-7', 'ecs-v6-response-bits-8',
-                                              'ecs-v6-response-bits-9', 'ecs-v6-response-bits-10',
-                                              'ecs-v6-response-bits-11', 'ecs-v6-response-bits-12',
-                                              'ecs-v6-response-bits-13', 'ecs-v6-response-bits-14',
-                                              'ecs-v6-response-bits-15', 'ecs-v6-response-bits-16',
-                                              'ecs-v6-response-bits-17', 'ecs-v6-response-bits-18',
-                                              'ecs-v6-response-bits-19', 'ecs-v6-response-bits-20',
-                                              'ecs-v6-response-bits-21', 'ecs-v6-response-bits-22',
-                                              'ecs-v6-response-bits-23', 'ecs-v6-response-bits-24',
-                                              'ecs-v6-response-bits-25', 'ecs-v6-response-bits-26',
-                                              'ecs-v6-response-bits-27', 'ecs-v6-response-bits-28',
-                                              'ecs-v6-response-bits-29', 'ecs-v6-response-bits-30',
-                                              'ecs-v6-response-bits-31', 'ecs-v6-response-bits-32',
-                                              'ecs-v6-response-bits-33', 'ecs-v6-response-bits-34',
-                                              'ecs-v6-response-bits-35', 'ecs-v6-response-bits-36',
-                                              'ecs-v6-response-bits-37', 'ecs-v6-response-bits-38',
-                                              'ecs-v6-response-bits-39', 'ecs-v6-response-bits-40',
-                                              'ecs-v6-response-bits-41', 'ecs-v6-response-bits-42',
-                                              'ecs-v6-response-bits-43', 'ecs-v6-response-bits-44',
-                                              'ecs-v6-response-bits-45', 'ecs-v6-response-bits-46',
-                                              'ecs-v6-response-bits-47', 'ecs-v6-response-bits-48',
-                                              'ecs-v6-response-bits-49', 'ecs-v6-response-bits-50',
-                                              'ecs-v6-response-bits-51', 'ecs-v6-response-bits-52',
-                                              'ecs-v6-response-bits-53', 'ecs-v6-response-bits-54',
-                                              'ecs-v6-response-bits-55', 'ecs-v6-response-bits-56',
-                                              'ecs-v6-response-bits-57', 'ecs-v6-response-bits-58',
-                                              'ecs-v6-response-bits-59', 'ecs-v6-response-bits-60',
-                                              'ecs-v6-response-bits-61', 'ecs-v6-response-bits-62',
-                                              'ecs-v6-response-bits-63', 'ecs-v6-response-bits-64',
-                                              'ecs-v6-response-bits-65', 'ecs-v6-response-bits-66',
-                                              'ecs-v6-response-bits-67', 'ecs-v6-response-bits-68',
-                                              'ecs-v6-response-bits-69', 'ecs-v6-response-bits-70',
-                                              'ecs-v6-response-bits-71', 'ecs-v6-response-bits-72',
-                                              'ecs-v6-response-bits-73', 'ecs-v6-response-bits-74',
-                                              'ecs-v6-response-bits-75', 'ecs-v6-response-bits-76',
-                                              'ecs-v6-response-bits-77', 'ecs-v6-response-bits-78',
-                                              'ecs-v6-response-bits-79', 'ecs-v6-response-bits-80',
-                                              'ecs-v6-response-bits-81', 'ecs-v6-response-bits-82',
-                                              'ecs-v6-response-bits-83', 'ecs-v6-response-bits-84',
-                                              'ecs-v6-response-bits-85', 'ecs-v6-response-bits-86',
-                                              'ecs-v6-response-bits-87', 'ecs-v6-response-bits-88',
-                                              'ecs-v6-response-bits-89', 'ecs-v6-response-bits-90',
-                                              'ecs-v6-response-bits-91', 'ecs-v6-response-bits-92',
-                                              'ecs-v6-response-bits-93', 'ecs-v6-response-bits-94',
-                                              'ecs-v6-response-bits-95', 'ecs-v6-response-bits-96',
-                                              'ecs-v6-response-bits-97', 'ecs-v6-response-bits-98',
-                                              'ecs-v6-response-bits-99', 'ecs-v6-response-bits-100',
-                                              'ecs-v6-response-bits-101', 'ecs-v6-response-bits-102',
-                                              'ecs-v6-response-bits-103', 'ecs-v6-response-bits-104',
-                                              'ecs-v6-response-bits-105', 'ecs-v6-response-bits-106',
-                                              'ecs-v6-response-bits-107', 'ecs-v6-response-bits-108',
-                                              'ecs-v6-response-bits-109', 'ecs-v6-response-bits-110',
-                                              'ecs-v6-response-bits-111', 'ecs-v6-response-bits-112',
-                                              'ecs-v6-response-bits-113', 'ecs-v6-response-bits-114',
-                                              'ecs-v6-response-bits-115', 'ecs-v6-response-bits-116',
-                                              'ecs-v6-response-bits-117', 'ecs-v6-response-bits-118',
-                                              'ecs-v6-response-bits-119', 'ecs-v6-response-bits-120',
-                                              'ecs-v6-response-bits-121', 'ecs-v6-response-bits-122',
-                                              'ecs-v6-response-bits-123', 'ecs-v6-response-bits-124',
-                                              'ecs-v6-response-bits-125', 'ecs-v6-response-bits-126',
-                                              'ecs-v6-response-bits-127', 'ecs-v6-response-bits-128']},
-    'stats-carbon-blacklist': {'comment': 'stats-carbon-blacklist	List of statistics that are prevented from being exported via Carbon',
-                               'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage',
-                                                 'ecs-v4-response-bits-1', 'ecs-v4-response-bits-2',
-                                                 'ecs-v4-response-bits-3', 'ecs-v4-response-bits-4',
-                                                 'ecs-v4-response-bits-5', 'ecs-v4-response-bits-6',
-                                                 'ecs-v4-response-bits-7', 'ecs-v4-response-bits-8',
-                                                 'ecs-v4-response-bits-9', 'ecs-v4-response-bits-10',
-                                                 'ecs-v4-response-bits-11', 'ecs-v4-response-bits-12',
-                                                 'ecs-v4-response-bits-13', 'ecs-v4-response-bits-14',
-                                                 'ecs-v4-response-bits-15', 'ecs-v4-response-bits-16',
-                                                 'ecs-v4-response-bits-17', 'ecs-v4-response-bits-18',
-                                                 'ecs-v4-response-bits-19', 'ecs-v4-response-bits-20',
-                                                 'ecs-v4-response-bits-21', 'ecs-v4-response-bits-22',
-                                                 'ecs-v4-response-bits-23', 'ecs-v4-response-bits-24',
-                                                 'ecs-v4-response-bits-25', 'ecs-v4-response-bits-26',
-                                                 'ecs-v4-response-bits-27', 'ecs-v4-response-bits-28',
-                                                 'ecs-v4-response-bits-29', 'ecs-v4-response-bits-30',
-                                                 'ecs-v4-response-bits-31', 'ecs-v4-response-bits-32',
-                                                 'ecs-v6-response-bits-1', 'ecs-v6-response-bits-2',
-                                                 'ecs-v6-response-bits-3', 'ecs-v6-response-bits-4',
-                                                 'ecs-v6-response-bits-5', 'ecs-v6-response-bits-6',
-                                                 'ecs-v6-response-bits-7', 'ecs-v6-response-bits-8',
-                                                 'ecs-v6-response-bits-9', 'ecs-v6-response-bits-10',
-                                                 'ecs-v6-response-bits-11', 'ecs-v6-response-bits-12',
-                                                 'ecs-v6-response-bits-13', 'ecs-v6-response-bits-14',
-                                                 'ecs-v6-response-bits-15', 'ecs-v6-response-bits-16',
-                                                 'ecs-v6-response-bits-17', 'ecs-v6-response-bits-18',
-                                                 'ecs-v6-response-bits-19', 'ecs-v6-response-bits-20',
-                                                 'ecs-v6-response-bits-21', 'ecs-v6-response-bits-22',
-                                                 'ecs-v6-response-bits-23', 'ecs-v6-response-bits-24',
-                                                 'ecs-v6-response-bits-25', 'ecs-v6-response-bits-26',
-                                                 'ecs-v6-response-bits-27', 'ecs-v6-response-bits-28',
-                                                 'ecs-v6-response-bits-29', 'ecs-v6-response-bits-30',
-                                                 'ecs-v6-response-bits-31', 'ecs-v6-response-bits-32',
-                                                 'ecs-v6-response-bits-33', 'ecs-v6-response-bits-34',
-                                                 'ecs-v6-response-bits-35', 'ecs-v6-response-bits-36',
-                                                 'ecs-v6-response-bits-37', 'ecs-v6-response-bits-38',
-                                                 'ecs-v6-response-bits-39', 'ecs-v6-response-bits-40',
-                                                 'ecs-v6-response-bits-41', 'ecs-v6-response-bits-42',
-                                                 'ecs-v6-response-bits-43', 'ecs-v6-response-bits-44',
-                                                 'ecs-v6-response-bits-45', 'ecs-v6-response-bits-46',
-                                                 'ecs-v6-response-bits-47', 'ecs-v6-response-bits-48',
-                                                 'ecs-v6-response-bits-49', 'ecs-v6-response-bits-50',
-                                                 'ecs-v6-response-bits-51', 'ecs-v6-response-bits-52',
-                                                 'ecs-v6-response-bits-53', 'ecs-v6-response-bits-54',
-                                                 'ecs-v6-response-bits-55', 'ecs-v6-response-bits-56',
-                                                 'ecs-v6-response-bits-57', 'ecs-v6-response-bits-58',
-                                                 'ecs-v6-response-bits-59', 'ecs-v6-response-bits-60',
-                                                 'ecs-v6-response-bits-61', 'ecs-v6-response-bits-62',
-                                                 'ecs-v6-response-bits-63', 'ecs-v6-response-bits-64',
-                                                 'ecs-v6-response-bits-65', 'ecs-v6-response-bits-66',
-                                                 'ecs-v6-response-bits-67', 'ecs-v6-response-bits-68',
-                                                 'ecs-v6-response-bits-69', 'ecs-v6-response-bits-70',
-                                                 'ecs-v6-response-bits-71', 'ecs-v6-response-bits-72',
-                                                 'ecs-v6-response-bits-73', 'ecs-v6-response-bits-74',
-                                                 'ecs-v6-response-bits-75', 'ecs-v6-response-bits-76',
-                                                 'ecs-v6-response-bits-77', 'ecs-v6-response-bits-78',
-                                                 'ecs-v6-response-bits-79', 'ecs-v6-response-bits-80',
-                                                 'ecs-v6-response-bits-81', 'ecs-v6-response-bits-82',
-                                                 'ecs-v6-response-bits-83', 'ecs-v6-response-bits-84',
-                                                 'ecs-v6-response-bits-85', 'ecs-v6-response-bits-86',
-                                                 'ecs-v6-response-bits-87', 'ecs-v6-response-bits-88',
-                                                 'ecs-v6-response-bits-89', 'ecs-v6-response-bits-90',
-                                                 'ecs-v6-response-bits-91', 'ecs-v6-response-bits-92',
-                                                 'ecs-v6-response-bits-93', 'ecs-v6-response-bits-94',
-                                                 'ecs-v6-response-bits-95', 'ecs-v6-response-bits-96',
-                                                 'ecs-v6-response-bits-97', 'ecs-v6-response-bits-98',
-                                                 'ecs-v6-response-bits-99', 'ecs-v6-response-bits-100',
-                                                 'ecs-v6-response-bits-101', 'ecs-v6-response-bits-102',
-                                                 'ecs-v6-response-bits-103', 'ecs-v6-response-bits-104',
-                                                 'ecs-v6-response-bits-105', 'ecs-v6-response-bits-106',
-                                                 'ecs-v6-response-bits-107', 'ecs-v6-response-bits-108',
-                                                 'ecs-v6-response-bits-109', 'ecs-v6-response-bits-110',
-                                                 'ecs-v6-response-bits-111', 'ecs-v6-response-bits-112',
-                                                 'ecs-v6-response-bits-113', 'ecs-v6-response-bits-114',
-                                                 'ecs-v6-response-bits-115', 'ecs-v6-response-bits-116',
-                                                 'ecs-v6-response-bits-117', 'ecs-v6-response-bits-118',
-                                                 'ecs-v6-response-bits-119', 'ecs-v6-response-bits-120',
-                                                 'ecs-v6-response-bits-121', 'ecs-v6-response-bits-122',
-                                                 'ecs-v6-response-bits-123', 'ecs-v6-response-bits-124',
-                                                 'ecs-v6-response-bits-125', 'ecs-v6-response-bits-126',
-                                                 'ecs-v6-response-bits-127', 'ecs-v6-response-bits-128']},
-    'stats-rec-control-blacklist': {'comment': 'stats-rec-control-blacklist	List of statistics that are prevented from being exported via rec_control get-all',
-                                    'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage',
-                                                      'ecs-v4-response-bits-1', 'ecs-v4-response-bits-2',
-                                                      'ecs-v4-response-bits-3', 'ecs-v4-response-bits-4',
-                                                      'ecs-v4-response-bits-5', 'ecs-v4-response-bits-6',
-                                                      'ecs-v4-response-bits-7', 'ecs-v4-response-bits-8',
-                                                      'ecs-v4-response-bits-9', 'ecs-v4-response-bits-10',
-                                                      'ecs-v4-response-bits-11', 'ecs-v4-response-bits-12',
-                                                      'ecs-v4-response-bits-13', 'ecs-v4-response-bits-14',
-                                                      'ecs-v4-response-bits-15', 'ecs-v4-response-bits-16',
-                                                      'ecs-v4-response-bits-17', 'ecs-v4-response-bits-18',
-                                                      'ecs-v4-response-bits-19', 'ecs-v4-response-bits-20',
-                                                      'ecs-v4-response-bits-21', 'ecs-v4-response-bits-22',
-                                                      'ecs-v4-response-bits-23', 'ecs-v4-response-bits-24',
-                                                      'ecs-v4-response-bits-25', 'ecs-v4-response-bits-26',
-                                                      'ecs-v4-response-bits-27', 'ecs-v4-response-bits-28',
-                                                      'ecs-v4-response-bits-29', 'ecs-v4-response-bits-30',
-                                                      'ecs-v4-response-bits-31', 'ecs-v4-response-bits-32',
-                                                      'ecs-v6-response-bits-1', 'ecs-v6-response-bits-2',
-                                                      'ecs-v6-response-bits-3', 'ecs-v6-response-bits-4',
-                                                      'ecs-v6-response-bits-5', 'ecs-v6-response-bits-6',
-                                                      'ecs-v6-response-bits-7', 'ecs-v6-response-bits-8',
-                                                      'ecs-v6-response-bits-9', 'ecs-v6-response-bits-10',
-                                                      'ecs-v6-response-bits-11', 'ecs-v6-response-bits-12',
-                                                      'ecs-v6-response-bits-13', 'ecs-v6-response-bits-14',
-                                                      'ecs-v6-response-bits-15', 'ecs-v6-response-bits-16',
-                                                      'ecs-v6-response-bits-17', 'ecs-v6-response-bits-18',
-                                                      'ecs-v6-response-bits-19', 'ecs-v6-response-bits-20',
-                                                      'ecs-v6-response-bits-21', 'ecs-v6-response-bits-22',
-                                                      'ecs-v6-response-bits-23', 'ecs-v6-response-bits-24',
-                                                      'ecs-v6-response-bits-25', 'ecs-v6-response-bits-26',
-                                                      'ecs-v6-response-bits-27', 'ecs-v6-response-bits-28',
-                                                      'ecs-v6-response-bits-29', 'ecs-v6-response-bits-30',
-                                                      'ecs-v6-response-bits-31', 'ecs-v6-response-bits-32',
-                                                      'ecs-v6-response-bits-33', 'ecs-v6-response-bits-34',
-                                                      'ecs-v6-response-bits-35', 'ecs-v6-response-bits-36',
-                                                      'ecs-v6-response-bits-37', 'ecs-v6-response-bits-38',
-                                                      'ecs-v6-response-bits-39', 'ecs-v6-response-bits-40',
-                                                      'ecs-v6-response-bits-41', 'ecs-v6-response-bits-42',
-                                                      'ecs-v6-response-bits-43', 'ecs-v6-response-bits-44',
-                                                      'ecs-v6-response-bits-45', 'ecs-v6-response-bits-46',
-                                                      'ecs-v6-response-bits-47', 'ecs-v6-response-bits-48',
-                                                      'ecs-v6-response-bits-49', 'ecs-v6-response-bits-50',
-                                                      'ecs-v6-response-bits-51', 'ecs-v6-response-bits-52',
-                                                      'ecs-v6-response-bits-53', 'ecs-v6-response-bits-54',
-                                                      'ecs-v6-response-bits-55', 'ecs-v6-response-bits-56',
-                                                      'ecs-v6-response-bits-57', 'ecs-v6-response-bits-58',
-                                                      'ecs-v6-response-bits-59', 'ecs-v6-response-bits-60',
-                                                      'ecs-v6-response-bits-61', 'ecs-v6-response-bits-62',
-                                                      'ecs-v6-response-bits-63', 'ecs-v6-response-bits-64',
-                                                      'ecs-v6-response-bits-65', 'ecs-v6-response-bits-66',
-                                                      'ecs-v6-response-bits-67', 'ecs-v6-response-bits-68',
-                                                      'ecs-v6-response-bits-69', 'ecs-v6-response-bits-70',
-                                                      'ecs-v6-response-bits-71', 'ecs-v6-response-bits-72',
-                                                      'ecs-v6-response-bits-73', 'ecs-v6-response-bits-74',
-                                                      'ecs-v6-response-bits-75', 'ecs-v6-response-bits-76',
-                                                      'ecs-v6-response-bits-77', 'ecs-v6-response-bits-78',
-                                                      'ecs-v6-response-bits-79', 'ecs-v6-response-bits-80',
-                                                      'ecs-v6-response-bits-81', 'ecs-v6-response-bits-82',
-                                                      'ecs-v6-response-bits-83', 'ecs-v6-response-bits-84',
-                                                      'ecs-v6-response-bits-85', 'ecs-v6-response-bits-86',
-                                                      'ecs-v6-response-bits-87', 'ecs-v6-response-bits-88',
-                                                      'ecs-v6-response-bits-89', 'ecs-v6-response-bits-90',
-                                                      'ecs-v6-response-bits-91', 'ecs-v6-response-bits-92',
-                                                      'ecs-v6-response-bits-93', 'ecs-v6-response-bits-94',
-                                                      'ecs-v6-response-bits-95', 'ecs-v6-response-bits-96',
-                                                      'ecs-v6-response-bits-97', 'ecs-v6-response-bits-98',
-                                                      'ecs-v6-response-bits-99', 'ecs-v6-response-bits-100',
-                                                      'ecs-v6-response-bits-101', 'ecs-v6-response-bits-102',
-                                                      'ecs-v6-response-bits-103', 'ecs-v6-response-bits-104',
-                                                      'ecs-v6-response-bits-105', 'ecs-v6-response-bits-106',
-                                                      'ecs-v6-response-bits-107', 'ecs-v6-response-bits-108',
-                                                      'ecs-v6-response-bits-109', 'ecs-v6-response-bits-110',
-                                                      'ecs-v6-response-bits-111', 'ecs-v6-response-bits-112',
-                                                      'ecs-v6-response-bits-113', 'ecs-v6-response-bits-114',
-                                                      'ecs-v6-response-bits-115', 'ecs-v6-response-bits-116',
-                                                      'ecs-v6-response-bits-117', 'ecs-v6-response-bits-118',
-                                                      'ecs-v6-response-bits-119', 'ecs-v6-response-bits-120',
-                                                      'ecs-v6-response-bits-121', 'ecs-v6-response-bits-122',
-                                                      'ecs-v6-response-bits-123', 'ecs-v6-response-bits-124',
-                                                      'ecs-v6-response-bits-125', 'ecs-v6-response-bits-126',
-                                                      'ecs-v6-response-bits-127', 'ecs-v6-response-bits-128']},
-
-
+    'stats-api-blacklist': {'comment': 'stats-api-blacklist	List of statistics that are disabled when retrieving the '
+                                       'complete list of statistics via the API',
+                            'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage'] +
+                                             [f'ecs-v4-response-bits-{i + 1}' for i in range(32)] +
+                                             [f'ecs-v6-response-bits-{i + 1}' for i in range(128)]},
+    'stats-carbon-blacklist': {'comment': 'stats-carbon-blacklist	List of statistics that are prevented from being '
+                                          'exported via Carbon',
+                               'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage'] +
+                                                [f'ecs-v4-response-bits-{i + 1}' for i in range(32)] +
+                                                [f'ecs-v6-response-bits-{i + 1}' for i in range(128)]},
+    'stats-rec-control-blacklist': {'comment': 'stats-rec-control-blacklist	List of statistics that are prevented '
+                                               'from being exported via rec_control get-all',
+                                    'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage'] +
+                                                     [f'ecs-v4-response-bits-{i + 1}' for i in range(32)] +
+                                                     [f'ecs-v6-response-bits-{i + 1}' for i in range(128)]},
     'stats-ringbuffer-entries': {
         'comment': 'stats-ringbuffer-entries	maximum number of packets to store statistics for',
         'default_value': 10000, },
-    'stats-snmp-blacklist': {'comment': 'stats-snmp-blacklist	List of statistics that are prevented from being exported via SNMP',
-                             'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage',
-                                               'ecs-v4-response-bits-1', 'ecs-v4-response-bits-2',
-                                               'ecs-v4-response-bits-3', 'ecs-v4-response-bits-4',
-                                               'ecs-v4-response-bits-5', 'ecs-v4-response-bits-6',
-                                               'ecs-v4-response-bits-7', 'ecs-v4-response-bits-8',
-                                               'ecs-v4-response-bits-9', 'ecs-v4-response-bits-10',
-                                               'ecs-v4-response-bits-11', 'ecs-v4-response-bits-12',
-                                               'ecs-v4-response-bits-13', 'ecs-v4-response-bits-14',
-                                               'ecs-v4-response-bits-15', 'ecs-v4-response-bits-16',
-                                               'ecs-v4-response-bits-17', 'ecs-v4-response-bits-18',
-                                               'ecs-v4-response-bits-19', 'ecs-v4-response-bits-20',
-                                               'ecs-v4-response-bits-21', 'ecs-v4-response-bits-22',
-                                               'ecs-v4-response-bits-23', 'ecs-v4-response-bits-24',
-                                               'ecs-v4-response-bits-25', 'ecs-v4-response-bits-26',
-                                               'ecs-v4-response-bits-27', 'ecs-v4-response-bits-28',
-                                               'ecs-v4-response-bits-29', 'ecs-v4-response-bits-30',
-                                               'ecs-v4-response-bits-31', 'ecs-v4-response-bits-32',
-                                               'ecs-v6-response-bits-1', 'ecs-v6-response-bits-2',
-                                               'ecs-v6-response-bits-3', 'ecs-v6-response-bits-4',
-                                               'ecs-v6-response-bits-5', 'ecs-v6-response-bits-6',
-                                               'ecs-v6-response-bits-7', 'ecs-v6-response-bits-8',
-                                               'ecs-v6-response-bits-9', 'ecs-v6-response-bits-10',
-                                               'ecs-v6-response-bits-11', 'ecs-v6-response-bits-12',
-                                               'ecs-v6-response-bits-13', 'ecs-v6-response-bits-14',
-                                               'ecs-v6-response-bits-15', 'ecs-v6-response-bits-16',
-                                               'ecs-v6-response-bits-17', 'ecs-v6-response-bits-18',
-                                               'ecs-v6-response-bits-19', 'ecs-v6-response-bits-20',
-                                               'ecs-v6-response-bits-21', 'ecs-v6-response-bits-22',
-                                               'ecs-v6-response-bits-23', 'ecs-v6-response-bits-24',
-                                               'ecs-v6-response-bits-25', 'ecs-v6-response-bits-26',
-                                               'ecs-v6-response-bits-27', 'ecs-v6-response-bits-28',
-                                               'ecs-v6-response-bits-29', 'ecs-v6-response-bits-30',
-                                               'ecs-v6-response-bits-31', 'ecs-v6-response-bits-32',
-                                               'ecs-v6-response-bits-33', 'ecs-v6-response-bits-34',
-                                               'ecs-v6-response-bits-35', 'ecs-v6-response-bits-36',
-                                               'ecs-v6-response-bits-37', 'ecs-v6-response-bits-38',
-                                               'ecs-v6-response-bits-39', 'ecs-v6-response-bits-40',
-                                               'ecs-v6-response-bits-41', 'ecs-v6-response-bits-42',
-                                               'ecs-v6-response-bits-43', 'ecs-v6-response-bits-44',
-                                               'ecs-v6-response-bits-45', 'ecs-v6-response-bits-46',
-                                               'ecs-v6-response-bits-47', 'ecs-v6-response-bits-48',
-                                               'ecs-v6-response-bits-49', 'ecs-v6-response-bits-50',
-                                               'ecs-v6-response-bits-51', 'ecs-v6-response-bits-52',
-                                               'ecs-v6-response-bits-53', 'ecs-v6-response-bits-54',
-                                               'ecs-v6-response-bits-55', 'ecs-v6-response-bits-56',
-                                               'ecs-v6-response-bits-57', 'ecs-v6-response-bits-58',
-                                               'ecs-v6-response-bits-59', 'ecs-v6-response-bits-60',
-                                               'ecs-v6-response-bits-61', 'ecs-v6-response-bits-62',
-                                               'ecs-v6-response-bits-63', 'ecs-v6-response-bits-64',
-                                               'ecs-v6-response-bits-65', 'ecs-v6-response-bits-66',
-                                               'ecs-v6-response-bits-67', 'ecs-v6-response-bits-68',
-                                               'ecs-v6-response-bits-69', 'ecs-v6-response-bits-70',
-                                               'ecs-v6-response-bits-71', 'ecs-v6-response-bits-72',
-                                               'ecs-v6-response-bits-73', 'ecs-v6-response-bits-74',
-                                               'ecs-v6-response-bits-75', 'ecs-v6-response-bits-76',
-                                               'ecs-v6-response-bits-77', 'ecs-v6-response-bits-78',
-                                               'ecs-v6-response-bits-79', 'ecs-v6-response-bits-80',
-                                               'ecs-v6-response-bits-81', 'ecs-v6-response-bits-82',
-                                               'ecs-v6-response-bits-83', 'ecs-v6-response-bits-84',
-                                               'ecs-v6-response-bits-85', 'ecs-v6-response-bits-86',
-                                               'ecs-v6-response-bits-87', 'ecs-v6-response-bits-88',
-                                               'ecs-v6-response-bits-89', 'ecs-v6-response-bits-90',
-                                               'ecs-v6-response-bits-91', 'ecs-v6-response-bits-92',
-                                               'ecs-v6-response-bits-93', 'ecs-v6-response-bits-94',
-                                               'ecs-v6-response-bits-95', 'ecs-v6-response-bits-96',
-                                               'ecs-v6-response-bits-97', 'ecs-v6-response-bits-98',
-                                               'ecs-v6-response-bits-99', 'ecs-v6-response-bits-100',
-                                               'ecs-v6-response-bits-101', 'ecs-v6-response-bits-102',
-                                               'ecs-v6-response-bits-103', 'ecs-v6-response-bits-104',
-                                               'ecs-v6-response-bits-105', 'ecs-v6-response-bits-106',
-                                               'ecs-v6-response-bits-107', 'ecs-v6-response-bits-108',
-                                               'ecs-v6-response-bits-109', 'ecs-v6-response-bits-110',
-                                               'ecs-v6-response-bits-111', 'ecs-v6-response-bits-112',
-                                               'ecs-v6-response-bits-113', 'ecs-v6-response-bits-114',
-                                               'ecs-v6-response-bits-115', 'ecs-v6-response-bits-116',
-                                               'ecs-v6-response-bits-117', 'ecs-v6-response-bits-118',
-                                               'ecs-v6-response-bits-119', 'ecs-v6-response-bits-120',
-                                               'ecs-v6-response-bits-121', 'ecs-v6-response-bits-122',
-                                               'ecs-v6-response-bits-123', 'ecs-v6-response-bits-124',
-                                               'ecs-v6-response-bits-125', 'ecs-v6-response-bits-126',
-                                               'ecs-v6-response-bits-127', 'ecs-v6-response-bits-128']},
-
+    'stats-snmp-blacklist': {'comment': 'stats-snmp-blacklist	List of statistics that are prevented from being '
+                                        'exported via SNMP',
+                             'default_value': ['cache-bytes', 'packetcache-bytes', 'special-memory-usage'] +
+                                              [f'ecs-v4-response-bits-{i + 1}' for i in range(32)] +
+                                              [f'ecs-v6-response-bits-{i + 1}' for i in range(128)]},
     'tcp-fast-open': {
         'comment': 'tcp-fast-open	Enable TCP Fast Open support on the listening sockets, '
                    'using the supplied numerical value as the queue size',
@@ -962,7 +781,8 @@ pdns_recursor_default_config = {
     'threads': {'comment': 'threads	Launch this number of threads', 'default_value': 2, },
     'trace': {'comment': 'trace	if we should output heaps of logging. set to \'fail\' to only log failing domains',
               'default_value': 'off', },
-    'udp-source-port-avoid': {'comment': 'udp-source-port-avoid	List of comma separated UDP port number to avoid', 'default_value': 11211},
+    'udp-source-port-avoid': {'comment': 'udp-source-port-avoid	List of comma separated UDP port number to avoid',
+                              'default_value': 11211},
     'udp-source-port-max': {'comment': 'udp-source-port-max	Maximum UDP port to bind on', 'default_value': 65535},
     'udp-source-port-min': {'comment': 'udp-source-port-min	Minimum UDP port to bind on', 'default_value': 1024},
 
@@ -978,18 +798,22 @@ pdns_recursor_default_config = {
                           'default_value': '127.0.0.1', },
     'webserver-allow-from': {'comment': 'webserver-allow-from	Webserver access is only allowed from these subnets',
                              'default_value': '127.0.0.1,::1', },
-    'webserver-loglevel': {'comment': 'webserver-loglevel	Amount of logging in the webserver (none, normal, detailed)', 'default_value': 'normal'},
+    'webserver-loglevel': {'comment': 'webserver-loglevel	Amount of logging in the webserver (none, normal, detailed)',
+                           'default_value': 'normal'},
 
     'webserver-password': {'comment': 'webserver-password	Password required for accessing the webserver',
                            'default_value': '', },
     'webserver-port': {'comment': 'webserver-port	Port of webserver to listen on', 'default_value': 8082, },
     'write-pid': {'comment': 'write-pid	Write a PID file', 'default_value': True, },
-    'xpf-allow-from': {'comment': 'xpf-allow-from	XPF information is only processed from these subnets', 'default_value': ''},
+    'xpf-allow-from': {'comment': 'xpf-allow-from	XPF information is only processed from these subnets',
+                       'default_value': ''},
     'xpf-rr-code': {'comment': 'xpf-rr-code	XPF option code to use', 'default_value': 0},
 }
 
 # set pdns_config to pdns_default_config
-pdns_configs = {x: y.get('default_value', None) for (x, y) in pdns_default_config.items()}.copy()
+pdns_configs = {x: y.get('default_value', None) for (x, y) in pdns_default_config.items()
+                if y.get('min_version', 0.0) <= pdns_version <= y.get('max_version', 999.99)
+                }.copy()
 
 # set this to known values
 pdns_configs.update({
@@ -1010,7 +834,9 @@ if recursor_config.get('enabled', False):
         'local-port': 5300,
     })
 
-    pdns_recursor_configs = {x: y.get('default_value', None) for (x, y) in pdns_recursor_default_config.items()}.copy()
+    pdns_recursor_configs = {x: y.get('default_value', None) for (x, y) in pdns_recursor_default_config.items()
+                             if y.get('min_version', 0.0) <= pdns_version <= y.get('max_version', 999.99)
+                             }.copy()
 
     pdns_recursor_configs.update({
         'config-dir': '/etc/powerdns',
@@ -1186,13 +1012,22 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
             'bind-ignore-broken-records': {'comment': 'bind-ignore-broken-records	'
                                                       'Ignore records that are out-of-bound for the zone.',
                                            'default_value': False},
-            'bind-supermaster-config': {'comment': 'bind-supermaster-config	Location of (part of) named.conf where '
-                                                   'pdns can write zone-statements to',
-                                        'default_value': ''},
+            'bind-autoprimary-config': {'comment': 'bind-autoprimary-config	Location of (part of) named.conf '
+                                                   'where pdns can write zone-statements to',
+                                        'default_value': '', 'min_version': 4.9},
+            'bind-autoprimary-destdir': {'comment': 'bind-autoprimary-destdir	Destination directory for newly '
+                                                    'added secondary zones', 'default_value': '/etc/powerdns',
+                                         'min_version': 4.9},
+            'bind-autoprimaries': {'comment': 'bind-autoprimaries	List of IP-addresses of autoprimaries',
+                                   'default_value': '', 'min_version': 4.9},
+            'bind-supermaster-config': {'comment': 'bind-supermaster-config	Location of (part of) named.conf '
+                                                   'where pdns can write zone-statements to',
+                                        'default_value': '', 'max_version': 4.8},
             'bind-supermaster-destdir': {'comment': 'bind-supermaster-destdir	Destination directory for newly '
-                                                    'added slave zones', 'default_value': '/etc/powerdns'},
+                                                    'added slave zones', 'default_value': '/etc/powerdns',
+                                         'max_version': 4.8},
             'bind-supermasters': {'comment': 'bind-supermasters	List of IP-addresses of supermasters',
-                                  'default_value': ''},
+                                  'default_value': '', 'max_version': 4.8},
         }
 
         backend_add_config = {
@@ -1200,6 +1035,13 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
             'bind-supermaster-config': '/var/lib/powerdns/supermaster.conf',
             'bind-supermaster-destdir': '/var/lib/powerdns/zones.slave.d',
         }
+
+        if pdns_version >= 4.9:
+            backend_add_config = {
+                'launch+': 'bind',
+                'bind-autoprimary-config': '/var/lib/powerdns/supermaster.conf',
+                'bind-autoprimary-destdir': '/var/lib/powerdns/zones.slave.d',
+            }
 
         zonefile_directory = config.get('zonefile_directory', '/var/lib/powerdns/zones')
 
@@ -1217,6 +1059,11 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
             '# Debian default: supermaster created zones are written here:',
             'include "/var/lib/powerdns/supermaster.conf";',
         ]
+        if pdns_version >= 4.9:
+            named_config = [
+                '# Debian default: autoprimary created zones are written here:',
+                'include "/var/lib/powerdns/supermaster.conf";',
+            ]
 
         # load zonefiles
         for zone, zone_config in config.get('zones', {}).items():
@@ -1386,7 +1233,12 @@ for backend, config in node.metadata.get('powerdns', {}).get('backends', {}).ite
         }
 
     # set backend_config to backend_default_config
-    backend_config = {x: y.get('default_value', None) for (x, y) in backend_default_config.items()}.copy()
+    if node.os == 'debian':
+        backend_config = {x: y.get('default_value', None) for (x, y) in backend_default_config.items()
+                          if y.get('min_version', 0.0) <= pdns_version <= y.get('max_version', 999.99)
+                          }.copy()
+    else:
+        backend_config = {x: y.get('default_value', None) for (x, y) in backend_default_config.items()}.copy()
 
     # set this to known values
     backend_config.update(backend_add_config)
